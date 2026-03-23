@@ -9,6 +9,7 @@ import CheckIn from "./pages/CheckIn";
 import Scanner from "./pages/Scanner";
 import Coach from "./pages/Coach";
 import Correlations from "./pages/Correlations";
+import Nudges from "./pages/Nudges";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/coach" element={<Coach />} />
           <Route path="/correlations" element={<Correlations />} />
+          <Route path="/nudges" element={<Nudges />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <BottomNav />

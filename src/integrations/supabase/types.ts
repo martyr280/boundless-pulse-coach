@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      nudge_log: {
+        Row: {
+          id: string
+          message: string
+          nudge_type: string
+          phone_number: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          message: string
+          nudge_type: string
+          phone_number: string
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          id?: string
+          message?: string
+          nudge_type?: string
+          phone_number?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      nudge_preferences: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          gratitude_reminder: boolean
+          habit_reminder: boolean
+          id: string
+          nudge_enabled: boolean
+          phone_number: string
+          preferred_hour: number
+          step_reminder: boolean
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          gratitude_reminder?: boolean
+          habit_reminder?: boolean
+          id?: string
+          nudge_enabled?: boolean
+          phone_number: string
+          preferred_hour?: number
+          step_reminder?: boolean
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          gratitude_reminder?: boolean
+          habit_reminder?: boolean
+          id?: string
+          nudge_enabled?: boolean
+          phone_number?: string
+          preferred_hour?: number
+          step_reminder?: boolean
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
