@@ -14,6 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_insights: {
+        Row: {
+          body: string
+          coach_id: string
+          created_at: string
+          id: string
+          insight_type: string
+          severity: string
+          title: string
+        }
+        Insert: {
+          body: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          insight_type?: string
+          severity?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          insight_type?: string
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_insights_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaches: {
+        Row: {
+          access_code: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          organization: string | null
+        }
+        Insert: {
+          access_code?: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          organization?: string | null
+        }
+        Update: {
+          access_code?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          organization?: string | null
+        }
+        Relationships: []
+      }
+      cohort_checkins: {
+        Row: {
+          created_at: string
+          daily_rating: number
+          date: string
+          faculty: number
+          faith: number
+          family: number
+          finance: number
+          fitness: number
+          freedom: number
+          fun: number
+          id: string
+          member_id: string
+          step_count: number
+        }
+        Insert: {
+          created_at?: string
+          daily_rating?: number
+          date: string
+          faculty?: number
+          faith?: number
+          family?: number
+          finance?: number
+          fitness?: number
+          freedom?: number
+          fun?: number
+          id?: string
+          member_id: string
+          step_count?: number
+        }
+        Update: {
+          created_at?: string
+          daily_rating?: number
+          date?: string
+          faculty?: number
+          faith?: number
+          family?: number
+          finance?: number
+          fitness?: number
+          freedom?: number
+          fun?: number
+          id?: string
+          member_id?: string
+          step_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_checkins_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "cohort_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohort_members: {
+        Row: {
+          alias: string
+          coach_id: string
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          alias?: string
+          coach_id: string
+          created_at?: string
+          display_name: string
+          id?: string
+        }
+        Update: {
+          alias?: string
+          coach_id?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_members_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nudge_log: {
         Row: {
           id: string
