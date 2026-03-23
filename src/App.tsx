@@ -10,6 +10,7 @@ import Scanner from "./pages/Scanner";
 import Coach from "./pages/Coach";
 import Correlations from "./pages/Correlations";
 import Nudges from "./pages/Nudges";
+import CoachDashboard from "./pages/CoachDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/coach" element={<Coach />} />
           <Route path="/correlations" element={<Correlations />} />
           <Route path="/nudges" element={<Nudges />} />
+          <Route path="/coaches" element={<CoachDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <BottomNav />

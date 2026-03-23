@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Target, Camera, Brain, BarChart3, MessageCircle } from 'lucide-react';
+import { Home, Target, Camera, Brain, BarChart3, MessageCircle, Users } from 'lucide-react';
 
 const tabs = [
   { to: '/', icon: Home, label: 'Pulse' },
@@ -8,6 +8,7 @@ const tabs = [
   { to: '/coach', icon: Brain, label: 'Coach' },
   { to: '/correlations', icon: BarChart3, label: 'Insights' },
   { to: '/nudges', icon: MessageCircle, label: 'Nudges' },
+  { to: '/coaches', icon: Users, label: 'Coaches' },
 ];
 
 const BottomNav = () => (
