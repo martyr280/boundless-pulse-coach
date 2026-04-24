@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_item_updates: {
+        Row: {
+          action_item_id: string
+          created_at: string
+          id: string
+          note: string
+        }
+        Insert: {
+          action_item_id: string
+          created_at?: string
+          id?: string
+          note: string
+        }
+        Update: {
+          action_item_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_item_updates_action_item_id_fkey"
+            columns: ["action_item_id"]
+            isOneToOne: false
+            referencedRelation: "action_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_items: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          source_lci_id: string | null
+          title: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          source_lci_id?: string | null
+          title: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          source_lci_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_items_source_lci_id_fkey"
+            columns: ["source_lci_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_insights: {
         Row: {
           body: string
@@ -84,12 +148,12 @@ export type Database = {
           created_at: string
           daily_rating: number
           date: string
-          faculty: number
           faith: number
           family: number
+          field: number
           finance: number
           fitness: number
-          freedom: number
+          friends: number
           fun: number
           id: string
           member_id: string
@@ -99,12 +163,12 @@ export type Database = {
           created_at?: string
           daily_rating?: number
           date: string
-          faculty?: number
           faith?: number
           family?: number
+          field?: number
           finance?: number
           fitness?: number
-          freedom?: number
+          friends?: number
           fun?: number
           id?: string
           member_id: string
@@ -114,12 +178,12 @@ export type Database = {
           created_at?: string
           daily_rating?: number
           date?: string
-          faculty?: number
           faith?: number
           family?: number
+          field?: number
           finance?: number
           fitness?: number
-          freedom?: number
+          friends?: number
           fun?: number
           id?: string
           member_id?: string
@@ -163,6 +227,112 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lci_highs_lows: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          session_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind: string
+          session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lci_highs_lows_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lci_sessions: {
+        Row: {
+          ai_briefing: string | null
+          created_at: string
+          help_needed: string | null
+          id: string
+          next_lci_date: string | null
+          session_date: string
+          year_review: string | null
+        }
+        Insert: {
+          ai_briefing?: string | null
+          created_at?: string
+          help_needed?: string | null
+          id?: string
+          next_lci_date?: string | null
+          session_date?: string
+          year_review?: string | null
+        }
+        Update: {
+          ai_briefing?: string | null
+          created_at?: string
+          help_needed?: string | null
+          id?: string
+          next_lci_date?: string | null
+          session_date?: string
+          year_review?: string | null
+        }
+        Relationships: []
+      }
+      lci_top_tasks: {
+        Row: {
+          created_at: string
+          feel: string | null
+          help_needed: string | null
+          id: string
+          obstacles: string | null
+          position: number
+          session_id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          feel?: string | null
+          help_needed?: string | null
+          id?: string
+          obstacles?: string | null
+          position?: number
+          session_id: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          feel?: string | null
+          help_needed?: string | null
+          id?: string
+          obstacles?: string | null
+          position?: number
+          session_id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lci_top_tasks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -233,6 +403,33 @@ export type Database = {
           step_reminder?: boolean
           timezone?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      scheduled_lci: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string
+          prep_sent: boolean
+          scheduled_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number: string
+          prep_sent?: boolean
+          scheduled_at: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string
+          prep_sent?: boolean
+          scheduled_at?: string
         }
         Relationships: []
       }

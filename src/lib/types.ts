@@ -1,9 +1,21 @@
-export const PILLARS = ['Family', 'Finance', 'Faith', 'Fitness', 'Faculty', 'Fun', 'Freedom'] as const;
+export const PILLARS = ['Family', 'Finance', 'Faith', 'Fitness', 'Friends', 'Fun', 'Field'] as const;
 export type Pillar = typeof PILLARS[number];
+
+export const PILLAR_SUBTOPICS: Record<Pillar, string> = {
+  Family: 'Spouses, Partners, Parents, Children, Connection, Intimacy, Parenting, Conflict Management',
+  Finance: 'Income, Taxes, Savings, Debt, Estate Planning, Career, Wealth Planning, Insurance',
+  Faith: 'Morals/Ethics, Spiritual Accountability, Stewardship, Meditation/Prayer, Disciplines, Study',
+  Fitness: 'Exercise, Nutrition, Stress Reduction, Hydration, Mind-Body Wellness, Strength',
+  Friends: 'Community, Neighbors, Social Groups, Workplace Relations, Deep Conversations, Empathy',
+  Fun: 'Art, Music, Hobbies, Travel, Relaxation, Me-Time, Entertainment, Laughter, Celebration',
+  Field: 'Profession, Purpose, Career Progression, Culture, Professional Development, Leaders, Training',
+};
 
 export interface PillarScore {
   pillar: Pillar;
   score: number;
+  whats_happening?: string;
+  how_it_feels?: string;
 }
 
 export interface CheckIn {
@@ -60,8 +72,8 @@ export const SAMPLE_CHECKIN: CheckIn = {
     { pillar: 'Finance', score: 6 },
     { pillar: 'Faith', score: 7 },
     { pillar: 'Fitness', score: 4 },
-    { pillar: 'Faculty', score: 9 },
+    { pillar: 'Friends', score: 8 },
     { pillar: 'Fun', score: 3 },
-    { pillar: 'Freedom', score: 7 },
+    { pillar: 'Field', score: 9 },
   ],
 };

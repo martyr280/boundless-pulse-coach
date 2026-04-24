@@ -11,6 +11,9 @@ import Coach from "./pages/Coach";
 import Correlations from "./pages/Correlations";
 import Nudges from "./pages/Nudges";
 import CoachDashboard from "./pages/CoachDashboard";
+import LCI from "./pages/LCI";
+import LCINew from "./pages/LCINew";
+import Actions from "./pages/Actions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
           <Route path="/correlations" element={<Correlations />} />
           <Route path="/nudges" element={<Nudges />} />
           <Route path="/coaches" element={<CoachDashboard />} />
+          <Route path="/lci" element={<LCI />} />
+          <Route path="/lci/new" element={<LCINew />} />
+          <Route path="/actions" element={<Actions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <BottomNav />
