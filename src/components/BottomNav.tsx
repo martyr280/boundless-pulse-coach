@@ -1,14 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Target, Camera, Brain, BarChart3, MessageCircle, Users } from 'lucide-react';
+import { Home, Target, ClipboardList, ListChecks, Brain } from 'lucide-react';
 
 const tabs = [
   { to: '/', icon: Home, label: 'Pulse' },
-  { to: '/checkin', icon: Target, label: 'Check-in' },
-  { to: '/scanner', icon: Camera, label: 'Bridge' },
+  { to: '/checkin', icon: Target, label: 'Your Now' },
+  { to: '/lci', icon: ClipboardList, label: 'LCI' },
+  { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
-  { to: '/correlations', icon: BarChart3, label: 'Insights' },
-  { to: '/nudges', icon: MessageCircle, label: 'Nudges' },
-  { to: '/coaches', icon: Users, label: 'Coaches' },
 ];
 
 const BottomNav = () => (
@@ -18,6 +16,7 @@ const BottomNav = () => (
         <NavLink
           key={to}
           to={to}
+          end={to === '/'}
           className={({ isActive }) =>
             `flex-1 flex flex-col items-center py-3 text-[10px] font-semibold transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
