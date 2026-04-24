@@ -87,38 +87,68 @@ const LCINewPage = () => {
         .filter((r) => r.body.trim() !== '');
       if (hlRows.length) await supabase.from('lci_highs_lows').insert(hlRows);
 
-      // 3. New top tasks (and create matching action items)
+      // 3. New top tasks (insert + create matching action items linked by source_top_task_id)
       const newTaskRows = topTasks
         .map((title, position) => ({ session_id: session.id, title: title.trim(), position, status: 'green' }))
         .filter((r) => r.title !== '');
       if (newTaskRows.length) {
-        await supabase.from('lci_top_tasks').insert(newTaskRows);
-        await supabase.from('action_items').insert(
-          newTaskRows.map((r) => ({ title: r.title, source_lci_id: session.id }))
-        );
+        const { data: insertedTasks, error: tasksErr } = await supabase
+          .from('lci_top_tasks')
+          .insert(newTaskRows)
+          .select('id, title');
+        if (tasksErr) throw tasksErr;
+        if (insertedTasks?.length) {
+          await supabase.from('action_items').insert(
+            insertedTasks.map((t) => ({
+              title: t.title,
+              source_lci_id: session.id,
+              source_top_task_id: t.id,
+            }))
+          );
+        }
       }
 
-      // 4. Save status updates on prior tasks as new dated notes on the matching action items
-      for (const p of priorTasks) {
-        if (!p.feel && !p.obstacles && !p.help_needed && p.status === 'green') continue;
-        const note = [
-          `Status: ${STATUS_LABEL[p.status]}`,
-          p.feel && `Feel: ${p.feel}`,
-          p.obstacles && `In the way: ${p.obstacles}`,
-          p.help_needed && `Help needed: ${p.help_needed}`,
-        ].filter(Boolean).join(' · ');
-        // Find matching action_item by title
-        const { data: ai } = await supabase
+      // 4. Save status updates on prior tasks — match by source_top_task_id (FK), no title fuzz
+      const priorIds = priorTasks
+        .filter((p) => p.feel || p.obstacles || p.help_needed || p.status !== 'green')
+        .map((p) => p.id);
+
+      if (priorIds.length) {
+        const { data: linkedItems } = await supabase
           .from('action_items')
-          .select('id')
-          .eq('title', p.title)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (ai && ai.length > 0) {
-          await supabase.from('action_item_updates').insert({ action_item_id: ai[0].id, note });
-          if (p.status === 'green') {
-            await supabase.from('action_items').update({ completed_at: new Date().toISOString() }).eq('id', ai[0].id);
-          }
+          .select('id, source_top_task_id')
+          .in('source_top_task_id', priorIds);
+        const itemByTaskId = new Map<string, string>(
+          (linkedItems ?? []).map((it: any) => [it.source_top_task_id, it.id])
+        );
+
+        const updateRows: { action_item_id: string; note: string }[] = [];
+        const completeIds: string[] = [];
+
+        for (const p of priorTasks) {
+          if (!p.feel && !p.obstacles && !p.help_needed && p.status === 'green') continue;
+          const itemId = itemByTaskId.get(p.id);
+          if (!itemId) continue; // prior task had no linked action item (e.g. legacy)
+
+          const note = [
+            `Status: ${STATUS_LABEL[p.status]}`,
+            p.feel && `Feel: ${p.feel}`,
+            p.obstacles && `In the way: ${p.obstacles}`,
+            p.help_needed && `Help needed: ${p.help_needed}`,
+          ].filter(Boolean).join(' · ');
+
+          updateRows.push({ action_item_id: itemId, note });
+          if (p.status === 'green') completeIds.push(itemId);
+        }
+
+        if (updateRows.length) {
+          await supabase.from('action_item_updates').insert(updateRows);
+        }
+        if (completeIds.length) {
+          await supabase
+            .from('action_items')
+            .update({ completed_at: new Date().toISOString() })
+            .in('id', completeIds);
         }
       }
 
