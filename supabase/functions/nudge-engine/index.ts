@@ -25,6 +25,9 @@ const NUDGE_MESSAGES: Record<string, string[]> = {
     "👟 Movement = momentum. Are you on track for your step goal today?",
     "🏔️ Every step counts. Get outside and add to your Boundless day!",
   ],
+  lci_prep: [
+    "📋 Your next LCI is in 3 days. Take a few minutes today to start your worksheet — Highs/Lows, Top Tasks, and what you need help with.",
+  ],
 };
 
 function pickRandom(arr: string[]): string {
