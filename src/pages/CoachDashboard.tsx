@@ -330,7 +330,7 @@ const CoachDashboard = () => {
                   <Line type="monotone" dataKey="finance" stroke="hsl(200, 70%, 50%)" strokeWidth={2} dot={false} name="Finance" />
                   <Line type="monotone" dataKey="family" stroke="hsl(140, 60%, 45%)" strokeWidth={2} dot={false} name="Family" />
                   <Line type="monotone" dataKey="fun" stroke="hsl(280, 60%, 55%)" strokeWidth={2} dot={false} name="Fun" />
-                  <Line type="monotone" dataKey="freedom" stroke="hsl(50, 80%, 50%)" strokeWidth={2} dot={false} name="Freedom" />
+                  <Line type="monotone" dataKey="field" stroke="hsl(50, 80%, 50%)" strokeWidth={2} dot={false} name="Field" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

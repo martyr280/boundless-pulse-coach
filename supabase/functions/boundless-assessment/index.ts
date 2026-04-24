@@ -31,7 +31,7 @@ RULES:
 - Strengths = pillars scoring 7+
 - Priority Opportunities = pillars scoring below 5
 - Always produce exactly 3 priority_ideas targeting the lowest-scoring areas
-- Cross-references should intelligently connect related pillars (e.g., low Fitness often impacts Faculty/energy)
+- Cross-references should intelligently connect related pillars (e.g., low Fitness often drains Field performance)
 - Be warm, direct, and action-oriented. No fluff.
 - Return ONLY valid JSON, no markdown fences.`;
 
