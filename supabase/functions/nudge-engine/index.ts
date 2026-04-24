@@ -101,6 +101,46 @@ serve(async (req) => {
 
     const results: any[] = [];
 
+    // 1. LCI prep nudges: any scheduled_lci within 2.5–3.5 days, prep_sent=false
+    const { data: scheduled } = await supabase
+      .from("scheduled_lci")
+      .select("*")
+      .eq("prep_sent", false);
+    const now = Date.now();
+    for (const sch of scheduled ?? []) {
+      const diffDays = (new Date(sch.scheduled_at).getTime() - now) / 86400000;
+      if (diffDays < 2.5 || diffDays > 3.5) continue;
+      const message = NUDGE_MESSAGES.lci_prep[0];
+      const personalized = sch.display_name ? `Hey ${sch.display_name}! ${message}` : message;
+      try {
+        const r = await fetch(`${GATEWAY_URL}/Messages.json`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "X-Connection-Api-Key": TWILIO_API_KEY,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            To: `whatsapp:${sch.phone_number}`,
+            From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+            Body: personalized,
+          }),
+        });
+        const d = await r.json();
+        if (r.ok) {
+          await supabase.from("scheduled_lci").update({ prep_sent: true }).eq("id", sch.id);
+          await supabase.from("nudge_log").insert({
+            phone_number: sch.phone_number, nudge_type: "lci_prep", message: personalized, status: "sent",
+          });
+          results.push({ phone: sch.phone_number, status: "sent", type: "lci_prep", sid: d.sid });
+        } else {
+          results.push({ phone: sch.phone_number, status: "failed", error: d });
+        }
+      } catch (err) {
+        results.push({ phone: sch.phone_number, status: "error", error: String(err) });
+      }
+    }
+
     for (const pref of prefs) {
       // Determine which nudges to send
       const nudgeTypes: string[] = [];
