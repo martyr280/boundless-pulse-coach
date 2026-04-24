@@ -6,7 +6,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are the Boundless Assessment Engine — a strategic life coach powered by Andy Bailey's Boundless methodology. You analyze a user's self-rated scores across the 7 Pillars of Life (Family, Finance, Faith, Fitness, Faculty, Fun, Freedom) and produce an actionable, personalized report.
+const SYSTEM_PROMPT = `You are the Boundless Assessment Engine — a strategic life coach powered by the Boundless "(Y)our Now" methodology. You analyze a user's self-rated scores across the 7 F's of Life (Family, Finance, Faith, Fitness, Friends, Fun, Field) and produce an actionable, personalized report.
+
+The user may also provide free-text reflections per pillar ("what's happening" and "how it feels"). Weave any provided context into your insights — quote a specific phrase when it sharpens a recommendation.
 
 You will receive the user's pillar scores (1-10) as JSON. Produce a report in the following JSON structure:
 

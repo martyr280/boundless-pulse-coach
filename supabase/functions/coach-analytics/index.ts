@@ -81,9 +81,9 @@ serve(async (req) => {
           finance: 4 + Math.floor(Math.random() * 5),
           faith: 3 + Math.floor(Math.random() * 6),
           fitness: 4 + Math.floor(Math.random() * 5),
-          faculty: 5 + Math.floor(Math.random() * 4),
+          friends: 5 + Math.floor(Math.random() * 4),
           fun: 3 + Math.floor(Math.random() * 5),
-          freedom: 4 + Math.floor(Math.random() * 5),
+          field: 4 + Math.floor(Math.random() * 5),
         };
 
         for (let d = 13; d >= 0; d--) {
@@ -103,9 +103,9 @@ serve(async (req) => {
             finance: clamp(baseScores.finance + vary() + trend),
             faith: clamp(baseScores.faith + vary()),
             fitness: clamp(baseScores.fitness + vary() + trend * 1.5),
-            faculty: clamp(baseScores.faculty + vary()),
+            friends: clamp(baseScores.friends + vary()),
             fun: clamp(baseScores.fun + vary() + trend),
-            freedom: clamp(baseScores.freedom + vary()),
+            field: clamp(baseScores.field + vary()),
             daily_rating: Math.max(-2, Math.min(2, Math.round(vary() * 0.6 + trend * 0.3))),
             step_count: Math.max(1000, Math.round(7000 + Math.random() * 6000 + trend * 500)),
           });
@@ -147,7 +147,7 @@ serve(async (req) => {
       }
 
       // Build a summary for AI analysis
-      const pillars = ["family", "finance", "faith", "fitness", "faculty", "fun", "freedom"];
+      const pillars = ["family", "finance", "faith", "fitness", "friends", "fun", "field"];
       const memberSummaries = members.map((m) => {
         const mCheckins = checkins.filter((c) => c.member_id === m.id).sort((a, b) => a.date.localeCompare(b.date));
         if (mCheckins.length < 2) return null;
@@ -175,7 +175,7 @@ serve(async (req) => {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not set");
 
-      const aiResponse = await fetch("https://api.lovable.dev/v1/chat/completions", {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -188,7 +188,7 @@ serve(async (req) => {
               role: "system",
               content: `You are a Boundless.me coaching analytics AI. Analyze cohort data and generate exactly 4 actionable insights for the coach. Each insight should be a JSON object with: title (short headline), body (1-2 sentence recommendation), severity ("alert" for concerning trends, "positive" for good trends, "info" for neutral observations). Return ONLY a JSON array of 4 insight objects, no markdown.
 
-The 7 pillars are: Family, Finance, Faith, Fitness, Faculty, Fun, Freedom (scored 1-10).
+The 7 pillars (Boundless "Your Now") are: Family, Finance, Faith, Fitness, Friends, Fun, Field (scored 1-10).
 Daily rating is -2 to +2. Focus on: declining trends, outliers, cohort-wide patterns, and actionable coaching opportunities.`,
             },
             {

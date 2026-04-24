@@ -15,10 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const FUNC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-analytics`;
-const PILLARS = ['family', 'finance', 'faith', 'fitness', 'faculty', 'fun', 'freedom'];
+const PILLARS = ['family', 'finance', 'faith', 'fitness', 'friends', 'fun', 'field'];
 const PILLAR_LABELS: Record<string, string> = {
   family: 'Family', finance: 'Finance', faith: 'Faith',
-  fitness: 'Fitness', faculty: 'Faculty', fun: 'Fun', freedom: 'Freedom',
+  fitness: 'Fitness', friends: 'Friends', fun: 'Fun', field: 'Field',
 };
 
 interface MemberData {
