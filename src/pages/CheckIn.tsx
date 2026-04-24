@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
-import { PILLARS, PillarScore, CheckIn } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
+import { PILLARS, PILLAR_SUBTOPICS, PillarScore, CheckIn } from '@/lib/types';
 import { addCheckIn } from '@/lib/store';
 import { ArrowLeft, Check, Loader2, Sparkles, Target, TrendingUp, Lightbulb, Link2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,6 +28,12 @@ const CheckInPage = () => {
   const [scores, setScores] = useState<Record<string, number>>(
     Object.fromEntries(PILLARS.map((p) => [p, 5]))
   );
+  const [whats, setWhats] = useState<Record<string, string>>(
+    Object.fromEntries(PILLARS.map((p) => [p, '']))
+  );
+  const [feels, setFeels] = useState<Record<string, string>>(
+    Object.fromEntries(PILLARS.map((p) => [p, '']))
+  );
   const [report, setReport] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [phase, setPhase] = useState<'rating' | 'report'>('rating');
@@ -35,6 +42,8 @@ const CheckInPage = () => {
     const pillarScores: PillarScore[] = PILLARS.map((p) => ({
       pillar: p,
       score: scores[p],
+      whats_happening: whats[p],
+      how_it_feels: feels[p],
     }));
     const checkin: CheckIn = {
       id: Date.now().toString(),
@@ -247,9 +256,9 @@ const CheckInPage = () => {
       <button onClick={() => navigate('/')} className="flex items-center gap-1 text-muted-foreground mb-4 hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <h1 className="text-2xl font-extrabold mb-1">Monthly Check-in</h1>
+      <h1 className="text-2xl font-extrabold mb-1">(Y)our Now</h1>
       <p className="text-muted-foreground text-sm mb-6">
-        Rate each pillar of your life from 1–10. AI will generate your personalized report.
+        Rate each F from 1–10. Add a note on what's happening and how it feels — the AI report uses both.
       </p>
 
       <div className="space-y-4">
@@ -258,13 +267,16 @@ const CheckInPage = () => {
           const isLow = score < 5;
           return (
             <Card key={pillar} className={`border-2 rounded-3xl transition-colors ${isLow ? 'border-warning/50 bg-warning/5' : ''}`}>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between">
                   <span className="font-bold text-sm">{pillar}</span>
                   <span className={`text-2xl font-extrabold ${isLow ? 'text-warning' : 'text-primary'}`}>
                     {score}
                   </span>
                 </div>
+                <p className="text-[11px] text-muted-foreground leading-snug -mt-1">
+                  {PILLAR_SUBTOPICS[pillar]}
+                </p>
                 <Slider
                   value={[score]}
                   min={1}
@@ -274,10 +286,24 @@ const CheckInPage = () => {
                   className="w-full"
                 />
                 {isLow && (
-                  <p className="text-xs text-warning font-semibold mt-2">
+                  <p className="text-xs text-warning font-semibold">
                     ⚡ Priority Opportunity
                   </p>
                 )}
+                <Textarea
+                  placeholder="What's happening / not happening that's causing your score?"
+                  value={whats[pillar]}
+                  onChange={(e) => setWhats((p) => ({ ...p, [pillar]: e.target.value }))}
+                  className="text-sm rounded-2xl"
+                  rows={2}
+                />
+                <Textarea
+                  placeholder="How does it feel?"
+                  value={feels[pillar]}
+                  onChange={(e) => setFeels((p) => ({ ...p, [pillar]: e.target.value }))}
+                  className="text-sm rounded-2xl"
+                  rows={2}
+                />
               </CardContent>
             </Card>
           );
