@@ -50,6 +50,7 @@ export type Database = {
           due_date: string | null
           id: string
           source_lci_id: string | null
+          source_top_task_id: string | null
           title: string
         }
         Insert: {
@@ -58,6 +59,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           source_lci_id?: string | null
+          source_top_task_id?: string | null
           title: string
         }
         Update: {
@@ -66,6 +68,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           source_lci_id?: string | null
+          source_top_task_id?: string | null
           title?: string
         }
         Relationships: [
@@ -74,6 +77,13 @@ export type Database = {
             columns: ["source_lci_id"]
             isOneToOne: false
             referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_source_top_task_id_fkey"
+            columns: ["source_top_task_id"]
+            isOneToOne: false
+            referencedRelation: "lci_top_tasks"
             referencedColumns: ["id"]
           },
         ]
