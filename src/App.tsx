@@ -21,10 +21,6 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const protect = (el: JSX.Element, requireCoach = false) => (
-  <ProtectedRoute requireCoach={requireCoach}>{el}</ProtectedRoute>
-);
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,16 +30,23 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={protect(<Index />)} />
-            <Route path="/checkin" element={protect(<CheckIn />)} />
-            <Route path="/scanner" element={protect(<Scanner />)} />
-            <Route path="/coach" element={protect(<Coach />)} />
-            <Route path="/correlations" element={protect(<Correlations />)} />
-            <Route path="/nudges" element={protect(<Nudges />)} />
-            <Route path="/coaches" element={protect(<CoachDashboard />, true)} />
-            <Route path="/lci" element={protect(<LCI />)} />
-            <Route path="/lci/new" element={protect(<LCINew />)} />
-            <Route path="/actions" element={protect(<Actions />)} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/checkin" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
+            <Route path="/scanner" element={<ProtectedRoute><Scanner /></ProtectedRoute>} />
+            <Route path="/coach" element={<ProtectedRoute><Coach /></ProtectedRoute>} />
+            <Route path="/correlations" element={<ProtectedRoute><Correlations /></ProtectedRoute>} />
+            <Route path="/nudges" element={<ProtectedRoute><Nudges /></ProtectedRoute>} />
+            <Route
+              path="/coaches"
+              element={
+                <ProtectedRoute allowedRoles={['coach', 'admin']}>
+                  <CoachDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/lci" element={<ProtectedRoute><LCI /></ProtectedRoute>} />
+            <Route path="/lci/new" element={<ProtectedRoute><LCINew /></ProtectedRoute>} />
+            <Route path="/actions" element={<ProtectedRoute><Actions /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
