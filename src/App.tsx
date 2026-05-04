@@ -6,19 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import CheckIn from "./pages/CheckIn";
-import Scanner from "./pages/Scanner";
-import Coach from "./pages/Coach";
-import Correlations from "./pages/Correlations";
-import Nudges from "./pages/Nudges";
-import CoachDashboard from "./pages/CoachDashboard";
-import LCI from "./pages/LCI";
-import LCINew from "./pages/LCINew";
-import Actions from "./pages/Actions";
-import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
+import NotFound from "./pages/NotFound";
+import { protectedRoutes } from "./routes/config";
 
 const queryClient = new QueryClient();
 
@@ -32,23 +23,17 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/access-denied" element={<AccessDenied />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/checkin" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
-            <Route path="/scanner" element={<ProtectedRoute><Scanner /></ProtectedRoute>} />
-            <Route path="/coach" element={<ProtectedRoute><Coach /></ProtectedRoute>} />
-            <Route path="/correlations" element={<ProtectedRoute><Correlations /></ProtectedRoute>} />
-            <Route path="/nudges" element={<ProtectedRoute><Nudges /></ProtectedRoute>} />
-            <Route
-              path="/coaches"
-              element={
-                <ProtectedRoute allowedRoles={['coach', 'admin']}>
-                  <CoachDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/lci" element={<ProtectedRoute><LCI /></ProtectedRoute>} />
-            <Route path="/lci/new" element={<ProtectedRoute><LCINew /></ProtectedRoute>} />
-            <Route path="/actions" element={<ProtectedRoute><Actions /></ProtectedRoute>} />
+            {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <ProtectedRoute allowedRoles={allowedRoles}>
+                    <Component />
+                  </ProtectedRoute>
+                }
+              />
+            ))}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
