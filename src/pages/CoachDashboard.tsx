@@ -14,7 +14,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const FUNC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-analytics`;
+
 const PILLARS = ['family', 'finance', 'faith', 'fitness', 'friends', 'fun', 'field'];
 const PILLAR_LABELS: Record<string, string> = {
   family: 'Family', finance: 'Finance', faith: 'Faith',
@@ -135,37 +135,30 @@ const CoachDashboard = () => {
 
   useEffect(() => {
     const init = async () => {
-      // Check for existing demo coach or seed
       const { data: coach } = await supabase
-        .from('coaches')
-        .select('id, name')
-        .eq('email', 'demo@boundless.me')
-        .maybeSingle();
-
+        .from('coaches').select('id, name').maybeSingle();
       if (coach) {
         setCoachId(coach.id);
         setCoachName(coach.name);
         await loadData(coach.id);
       } else {
-        // Seed demo data
         try {
-          const resp = await fetch(FUNC_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({ mode: 'seed_demo' }),
+          const { data, error } = await supabase.functions.invoke('coach-analytics', {
+            body: { mode: 'seed_demo' },
           });
-          const data = await resp.json();
-          if (data.coach_id) {
-            setCoachId(data.coach_id);
-            setCoachName('Demo Coach');
-            await loadData(data.coach_id);
+          if (error || (data as any)?.error) {
+            toast.error((data as any)?.error || 'Coach role required');
+            setLoading(false);
+            return;
+          }
+          if ((data as any).coach_id) {
+            setCoachId((data as any).coach_id);
+            setCoachName('Coach');
+            await loadData((data as any).coach_id);
           }
         } catch (e) {
           console.error(e);
-          toast.error('Failed to initialize demo data');
+          toast.error('Failed to initialize');
           setLoading(false);
         }
       }
@@ -177,18 +170,14 @@ const CoachDashboard = () => {
     if (!coachId) return;
     setAnalyzing(true);
     try {
-      const resp = await fetch(FUNC_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ mode: 'analyze', coach_id: coachId }),
+      const { data, error } = await supabase.functions.invoke('coach-analytics', {
+        body: { mode: 'analyze' },
       });
-      const data = await resp.json();
-      if (data.insights) {
-        setInsights(data.insights);
+      if (!error && (data as any)?.insights) {
+        setInsights((data as any).insights);
         toast.success('AI analysis complete');
+      } else {
+        toast.error((data as any)?.error || 'Analysis failed');
       }
     } catch (e) {
       console.error(e);
