@@ -9,6 +9,7 @@ import { PILLARS, PILLAR_SUBTOPICS, PillarScore, CheckIn } from '@/lib/types';
 import { addCheckIn } from '@/lib/store';
 import { ArrowLeft, Check, Loader2, Sparkles, Target, TrendingUp, Lightbulb, Link2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ReportData {
   overall_score: number;
@@ -21,7 +22,7 @@ interface ReportData {
   motivational_close: string;
 }
 
-const ASSESSMENT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/boundless-assessment`;
+
 
 const CheckInPage = () => {
   const navigate = useNavigate();
@@ -55,24 +56,15 @@ const CheckInPage = () => {
     // Generate AI report
     setIsGenerating(true);
     try {
-      const resp = await fetch(ASSESSMENT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ scores: pillarScores }),
+      const { data, error } = await supabase.functions.invoke('boundless-assessment', {
+        body: { scores: pillarScores },
       });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
-        toast.error(err.error || `Error: ${resp.status}`);
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || (error as any)?.message || 'Failed to generate report');
         navigate('/');
         return;
       }
-
-      const data = await resp.json();
-      setReport(data);
+      setReport(data as any);
       setPhase('report');
     } catch (e) {
       console.error(e);
