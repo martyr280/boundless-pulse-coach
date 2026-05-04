@@ -8,11 +8,9 @@ import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, Bell, MessageCircle, Send, Clock, Loader2, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 const NudgesPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [enabled, setEnabled] = useState(true);
