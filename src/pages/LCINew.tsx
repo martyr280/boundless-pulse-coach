@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ClipboardList, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 type Status = 'red' | 'yellow' | 'green';
@@ -22,6 +23,7 @@ const STATUS_LABEL: Record<Status, string> = { red: 'Red', yellow: 'Yellow', gre
 
 const LCINewPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [sessionDate] = useState(new Date().toISOString().split('T')[0]);
   const [nextDate, setNextDate] = useState('');
   const [highs, setHighs] = useState({ personal_high: '', business_high: '', personal_low: '', business_low: '' });
@@ -66,12 +68,14 @@ const LCINewPage = () => {
   };
 
   const handleSave = async () => {
+    if (!user) { toast.error('Sign in required'); return; }
     setSaving(true);
     try {
       // 1. Create session
       const { data: session, error: sessionErr } = await supabase
         .from('lci_sessions')
         .insert({
+          user_id: user.id,
           session_date: sessionDate,
           next_lci_date: nextDate || null,
           year_review: yearReview,
@@ -100,6 +104,7 @@ const LCINewPage = () => {
         if (insertedTasks?.length) {
           await supabase.from('action_items').insert(
             insertedTasks.map((t) => ({
+              user_id: user.id,
               title: t.title,
               source_lci_id: session.id,
               source_top_task_id: t.id,
@@ -154,20 +159,13 @@ const LCINewPage = () => {
 
       // 5. Trigger AI briefing (fire-and-forget for UX, but await so we can show it)
       toast.success('LCI saved. Generating coach briefing…');
-      const briefingResp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lci-summary`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ session_id: session.id }),
-        }
-      );
-      if (!briefingResp.ok) {
-        const err = await briefingResp.json().catch(() => ({}));
-        toast.error(err.error || 'Briefing failed (LCI still saved)');
+      const { data: briefData, error: briefErr } = await supabase.functions.invoke('lci-summary', {
+        body: { session_id: session.id },
+      });
+      if (briefErr) {
+        toast.error((briefErr as any).message || 'Briefing failed (LCI still saved)');
+      } else if ((briefData as any)?.error) {
+        toast.error((briefData as any).error);
       }
       navigate('/lci');
     } catch (e) {
