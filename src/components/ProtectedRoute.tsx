@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, AppRole } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { logAccessDenied } from '@/lib/audit';
 
 interface Props {
   children: React.ReactNode;
@@ -21,8 +23,9 @@ const ProtectedRoute = ({
   allowedRoles,
   unauthorizedRedirect,
 }: Props) => {
-  const { session, loading, rolesLoading, hasRole, isAdmin } = useAuth();
+  const { session, loading, rolesLoading, hasRole, isAdmin, roles } = useAuth();
   const location = useLocation();
+  const loggedRef = useRef<string | null>(null);
 
   // 1. Wait for initial auth check.
   if (loading) {
@@ -57,7 +60,21 @@ const ProtectedRoute = ({
   }
 
   // 5. Enforce role → redirect to dedicated /access-denied page.
-  if (required.length > 0 && !hasRole(required) && !isAdmin) {
+  const denied = required.length > 0 && !hasRole(required) && !isAdmin;
+
+  useEffect(() => {
+    if (!denied) return;
+    const key = `${location.pathname}|${required.join(',')}`;
+    if (loggedRef.current === key) return; // dedupe per mount
+    loggedRef.current = key;
+    logAccessDenied({
+      route: location.pathname,
+      requiredRoles: required,
+      userRoles: roles,
+    });
+  }, [denied, location.pathname, required, roles]);
+
+  if (denied) {
     return (
       <Navigate
         to={unauthorizedRedirect ?? '/access-denied'}
