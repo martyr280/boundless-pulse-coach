@@ -34,51 +34,77 @@ function pickRandom(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+const PHONE_RE = /^\+[1-9]\d{6,14}$/;
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const TWILIO_API_KEY = Deno.env.get("TWILIO_API_KEY");
     if (!TWILIO_API_KEY) throw new Error("TWILIO_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const body = await req.json().catch(() => ({}));
-    const mode = body.mode || "scheduled"; // "scheduled" | "test" | "save_prefs"
-    const fromNumber = body.from_number; // Twilio WhatsApp number
+    const mode = body?.mode || "scheduled";
+    const fromNumber = body?.from_number;
 
-    // Save preferences mode
+    // Modes that require auth
+    const userModes = new Set(["save_prefs", "test"]);
+    let userId: string | null = null;
+
+    if (userModes.has(mode)) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claims, error } = await userClient.auth.getClaims(authHeader.replace("Bearer ", ""));
+      if (error || !claims?.claims) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = claims.claims.sub;
+    }
+
+    // === SAVE PREFS ===
     if (mode === "save_prefs") {
-      const { phone_number, display_name, nudge_enabled, gratitude_reminder, habit_reminder, step_reminder, preferred_hour, timezone } = body;
-
-      if (!phone_number) {
-        return new Response(JSON.stringify({ error: "Phone number is required" }), {
+      const phone_number = String(body.phone_number ?? "").trim();
+      if (!PHONE_RE.test(phone_number)) {
+        return new Response(JSON.stringify({ error: "Phone must be E.164, e.g. +15551234567" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const display_name = String(body.display_name ?? "").slice(0, 80);
+      const preferred_hour = Math.max(0, Math.min(23, Number(body.preferred_hour) || 9));
+      const tz = String(body.timezone ?? "America/Chicago").slice(0, 64);
 
-      // Upsert by phone number
-      const { data: existing } = await supabase
-        .from("nudge_preferences")
-        .select("id")
-        .eq("phone_number", phone_number)
-        .maybeSingle();
+      const { data: existing } = await serviceClient
+        .from("nudge_preferences").select("id").eq("user_id", userId!).maybeSingle();
+
+      const payload = {
+        user_id: userId!, phone_number, display_name,
+        nudge_enabled: !!body.nudge_enabled,
+        gratitude_reminder: !!body.gratitude_reminder,
+        habit_reminder: !!body.habit_reminder,
+        step_reminder: !!body.step_reminder,
+        preferred_hour, timezone: tz,
+      };
 
       if (existing) {
-        await supabase.from("nudge_preferences").update({
-          display_name, nudge_enabled, gratitude_reminder, habit_reminder, step_reminder, preferred_hour, timezone, updated_at: new Date().toISOString(),
+        await serviceClient.from("nudge_preferences").update({
+          ...payload, updated_at: new Date().toISOString(),
         }).eq("id", existing.id);
       } else {
-        await supabase.from("nudge_preferences").insert({
-          phone_number, display_name, nudge_enabled, gratitude_reminder, habit_reminder, step_reminder, preferred_hour, timezone,
-        });
+        await serviceClient.from("nudge_preferences").insert(payload);
       }
 
       return new Response(JSON.stringify({ success: true }), {
@@ -86,116 +112,118 @@ serve(async (req) => {
       });
     }
 
-    // Get preferences for active users
-    const { data: prefs, error: prefsError } = await supabase
-      .from("nudge_preferences")
-      .select("*")
-      .eq("nudge_enabled", true);
-
-    if (prefsError) throw prefsError;
-    if (!prefs || prefs.length === 0) {
-      return new Response(JSON.stringify({ message: "No active nudge subscribers" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // === TEST NUDGE (sends to caller's saved number) ===
+    if (mode === "test") {
+      const { data: pref } = await serviceClient
+        .from("nudge_preferences").select("*").eq("user_id", userId!).maybeSingle();
+      if (!pref?.phone_number) {
+        return new Response(JSON.stringify({ error: "No phone number on file" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const message = pickRandom(NUDGE_MESSAGES.gratitude);
+      const personalized = pref.display_name ? `Hey ${pref.display_name}! ${message}` : message;
+      const r = await fetch(`${GATEWAY_URL}/Messages.json`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "X-Connection-Api-Key": TWILIO_API_KEY,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          To: `whatsapp:${pref.phone_number}`,
+          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          Body: personalized,
+        }),
+      });
+      const d = await r.json();
+      await serviceClient.from("nudge_log").insert({
+        user_id: userId, phone_number: pref.phone_number,
+        nudge_type: "test", message: personalized,
+        status: r.ok ? "sent" : "failed",
+      });
+      return new Response(JSON.stringify({ success: r.ok, sid: d.sid, error: r.ok ? null : d }), {
+        status: r.ok ? 200 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const results: any[] = [];
+    // === SCHEDULED (cron / service-only) ===
+    // Restrict scheduled mode to service role calls
+    const callerKey = req.headers.get("apikey") || req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (callerKey !== Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // 1. LCI prep nudges: any scheduled_lci within 2.5–3.5 days, prep_sent=false
-    const { data: scheduled } = await supabase
-      .from("scheduled_lci")
-      .select("*")
-      .eq("prep_sent", false);
+    const { data: prefs } = await serviceClient
+      .from("nudge_preferences").select("*").eq("nudge_enabled", true);
+
+    const results: any[] = [];
+    const { data: scheduled } = await serviceClient
+      .from("scheduled_lci").select("*").eq("prep_sent", false);
     const now = Date.now();
     for (const sch of scheduled ?? []) {
       const diffDays = (new Date(sch.scheduled_at).getTime() - now) / 86400000;
       if (diffDays < 2.5 || diffDays > 3.5) continue;
       const message = NUDGE_MESSAGES.lci_prep[0];
       const personalized = sch.display_name ? `Hey ${sch.display_name}! ${message}` : message;
-      try {
-        const r = await fetch(`${GATEWAY_URL}/Messages.json`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "X-Connection-Api-Key": TWILIO_API_KEY,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            To: `whatsapp:${sch.phone_number}`,
-            From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
-            Body: personalized,
-          }),
+      const r = await fetch(`${GATEWAY_URL}/Messages.json`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "X-Connection-Api-Key": TWILIO_API_KEY,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          To: `whatsapp:${sch.phone_number}`,
+          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          Body: personalized,
+        }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        await serviceClient.from("scheduled_lci").update({ prep_sent: true }).eq("id", sch.id);
+        await serviceClient.from("nudge_log").insert({
+          user_id: sch.user_id, phone_number: sch.phone_number,
+          nudge_type: "lci_prep", message: personalized, status: "sent",
         });
-        const d = await r.json();
-        if (r.ok) {
-          await supabase.from("scheduled_lci").update({ prep_sent: true }).eq("id", sch.id);
-          await supabase.from("nudge_log").insert({
-            phone_number: sch.phone_number, nudge_type: "lci_prep", message: personalized, status: "sent",
-          });
-          results.push({ phone: sch.phone_number, status: "sent", type: "lci_prep", sid: d.sid });
-        } else {
-          results.push({ phone: sch.phone_number, status: "failed", error: d });
-        }
-      } catch (err) {
-        results.push({ phone: sch.phone_number, status: "error", error: String(err) });
       }
+      results.push({ phone: sch.phone_number, status: r.ok ? "sent" : "failed", sid: d.sid });
     }
 
-    for (const pref of prefs) {
-      // Determine which nudges to send
-      const nudgeTypes: string[] = [];
-      if (pref.gratitude_reminder) nudgeTypes.push("gratitude");
-      if (pref.habit_reminder) nudgeTypes.push("habit");
-      if (pref.step_reminder) nudgeTypes.push("step");
-
-      if (nudgeTypes.length === 0) continue;
-
-      // Pick one nudge type (rotate based on day)
+    for (const pref of prefs ?? []) {
+      const types: string[] = [];
+      if (pref.gratitude_reminder) types.push("gratitude");
+      if (pref.habit_reminder) types.push("habit");
+      if (pref.step_reminder) types.push("step");
+      if (!types.length) continue;
       const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-      const selectedType = nudgeTypes[dayOfYear % nudgeTypes.length];
-      const message = pickRandom(NUDGE_MESSAGES[selectedType]);
+      const selected = types[dayOfYear % types.length];
+      const message = pickRandom(NUDGE_MESSAGES[selected]);
+      const personalized = pref.display_name ? `Hey ${pref.display_name}! ${message}` : message;
 
-      const personalizedMessage = pref.display_name
-        ? `Hey ${pref.display_name}! ${message}`
-        : message;
-
-      try {
-        // Send via Twilio WhatsApp through connector gateway
-        const twilioResponse = await fetch(`${GATEWAY_URL}/Messages.json`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "X-Connection-Api-Key": TWILIO_API_KEY,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            To: `whatsapp:${pref.phone_number}`,
-            From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886", // Twilio sandbox default
-            Body: personalizedMessage,
-          }),
+      const r = await fetch(`${GATEWAY_URL}/Messages.json`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "X-Connection-Api-Key": TWILIO_API_KEY,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          To: `whatsapp:${pref.phone_number}`,
+          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          Body: personalized,
+        }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        await serviceClient.from("nudge_log").insert({
+          user_id: pref.user_id, phone_number: pref.phone_number,
+          nudge_type: selected, message: personalized, status: "sent",
         });
-
-        const twilioData = await twilioResponse.json();
-
-        if (!twilioResponse.ok) {
-          console.error(`Twilio error for ${pref.phone_number}:`, twilioData);
-          results.push({ phone: pref.phone_number, status: "failed", error: twilioData });
-          continue;
-        }
-
-        // Log the nudge
-        await supabase.from("nudge_log").insert({
-          phone_number: pref.phone_number,
-          nudge_type: selectedType,
-          message: personalizedMessage,
-          status: "sent",
-        });
-
-        results.push({ phone: pref.phone_number, status: "sent", type: selectedType, sid: twilioData.sid });
-      } catch (sendError) {
-        console.error(`Error sending to ${pref.phone_number}:`, sendError);
-        results.push({ phone: pref.phone_number, status: "error", error: String(sendError) });
       }
+      results.push({ phone: pref.phone_number, status: r.ok ? "sent" : "failed", sid: d.sid });
     }
 
     return new Response(JSON.stringify({ success: true, results }), {
@@ -203,9 +231,8 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("nudge-engine error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

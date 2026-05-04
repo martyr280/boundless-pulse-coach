@@ -25,32 +25,54 @@ Return MARKDOWN with these sections (no preamble, no JSON):
 
 Keep it under 250 words. Be direct. No fluff.`;
 
+function isUuid(s: unknown): s is string {
+  return typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const { session_id } = await req.json();
-    if (!session_id) {
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claims, error: authErr } = await userClient.auth.getClaims(token);
+    if (authErr || !claims?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claims.claims.sub;
+
+    const body = await req.json().catch(() => ({}));
+    const session_id = body?.session_id;
+    if (!isUuid(session_id)) {
       return new Response(JSON.stringify({ error: "session_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // user-scoped queries — RLS enforces ownership
     const [{ data: session }, { data: highsLows }, { data: topTasks }] = await Promise.all([
-      supabase.from("lci_sessions").select("*").eq("id", session_id).maybeSingle(),
-      supabase.from("lci_highs_lows").select("*").eq("session_id", session_id),
-      supabase.from("lci_top_tasks").select("*").eq("session_id", session_id).order("position"),
+      userClient.from("lci_sessions").select("*").eq("id", session_id).maybeSingle(),
+      userClient.from("lci_highs_lows").select("*").eq("session_id", session_id),
+      userClient.from("lci_top_tasks").select("*").eq("session_id", session_id).order("position"),
     ]);
 
-    if (!session) {
+    if (!session || session.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Session not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -75,7 +97,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `LCI worksheet:\n${JSON.stringify(payload, null, 2)}` },
@@ -104,7 +126,7 @@ serve(async (req) => {
     const data = await resp.json();
     const briefing = data.choices?.[0]?.message?.content || "";
 
-    await supabase.from("lci_sessions").update({ ai_briefing: briefing }).eq("id", session_id);
+    await userClient.from("lci_sessions").update({ ai_briefing: briefing }).eq("id", session_id);
 
     return new Response(JSON.stringify({ briefing }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
