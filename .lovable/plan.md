@@ -1,70 +1,70 @@
+# Production Readiness Plan
 
-# Align app with Boundless methodology (Your Now + LCI + Action Items)
+The app currently runs with **public RLS** on every table, no authentication, no per-user data scoping, and no role separation between members and coaches. That's fine for a demo but blocks real-world use. This plan closes those gaps in five focused phases.
 
-The uploaded PDFs reveal the customer's actual coaching system. Three deltas vs. what's currently built:
+## Phase 1 — Authentication & user identity
 
-1. **Pillar names are wrong.** Real system uses **8 F's** ("(Y)our Now"): Family, Finance, Faith, Fitness, **Friends**, Fun, **Field**. Current app has 7 and uses "Faculty" + "Freedom" instead of "Friends" + "Field". Each pillar also has **sub-topics** (e.g., Family → Spouses, Parents, Children, Intimacy, Conflict Management).
-2. **No LCI (Life Check-In) module.** The LCI Worksheet is the customer's core recurring artifact: Highs/Lows (personal & business), Top Tasks review (R/Y/G), 5 new Top Tasks, "What can I help you with?".
-3. **No Action Items tracker.** The 04/03 doc shows the customer's followup style: dated action items with status notes ("Completed 04/14", "Awaiting response", "Slated to complete by 05/07"). This is what should be auto-pulled forward into each LCI.
+- Add Lovable Cloud auth (email/password + Google).
+- New routes: `/auth` (sign in / sign up / forgot password) and `/reset-password`.
+- Create `profiles` table (`id` FK → `auth.users`, `display_name`, `phone_number`, `timezone`, `avatar_url`, `created_at`) with auto-create trigger on signup.
+- Create `user_roles` table + `app_role` enum (`member`, `coach`, `admin`) + `has_role(uuid, app_role)` SECURITY DEFINER function. Roles **never** stored on profiles.
+- Wrap app in an `AuthProvider` using `onAuthStateChange` (set listener before `getSession`).
+- Protected route wrapper redirects unauthenticated users to `/auth`.
+- Coach routes (`/coach`) gated by `has_role(auth.uid(), 'coach')`.
 
-## What we'll change
+## Phase 2 — Per-user data ownership + real RLS
 
-### 1. Fix the 7 Pillars → 8 F's ("Your Now")
-- Rename `Faculty` → `Friends`, `Freedom` → `Field`, add the 8th if needed (the doc shows 7 "F" categories actually — Family, Finance, Faith, Fitness, Friends, Fun, Field — so it's still 7, just with corrected names).
-- Add `subtopics` metadata per pillar (shown as helper text under each slider on Check-In and on the Pulse page).
-- Add two free-text fields per pillar on Check-In: **"What's happening?"** and **"How does it feel?"** (matches the worksheet exactly).
-- Update everywhere pillars are referenced: `src/lib/types.ts`, `Index.tsx`, `CheckIn.tsx`, `CoachDashboard.tsx`, `Correlations.tsx`, `boundless-assessment` edge function prompt, `coach-analytics` edge function (DB columns `faculty`/`freedom` → migrate to `friends`/`field`).
-- DB migration: rename columns on `cohort_checkins` (`faculty` → `friends`, `freedom` → `field`).
+Add `user_id uuid references auth.users(id)` to every user-owned table and replace the `Public *` policies:
 
-### 2. New LCI module (`/lci`)
-New page **"LCI"** in bottom nav (replaces "Bridge"/Scanner which is unused for this methodology — we'll remove Scanner from nav but keep the route).
-- **List view**: prior LCIs with date, # top tasks, R/Y/G summary.
-- **New LCI flow** (single scrolling form mirroring the worksheet):
-  1. Confirm next LCI date/time (date picker)
-  2. Highs & Lows — 4 textareas (Personal High, Business High, Personal Low, Business Low)
-  3. **Review Last Top Tasks** — auto-loaded from previous LCI; for each: R/Y/G picker, "How do you feel?", "What's in the way?", "How can others help?" (textareas)
-  4. **Year Review** — 4 categories (free text, prompted)
-  5. **5 new Top Tasks** — 5 inputs
-  6. **"What can I help you with?"** — textarea
-- **AI summary**: after save, call edge function `lci-summary` (Lovable AI / Gemini) that produces a coach-ready briefing: themes, blockers, momentum signals, suggested questions for the next LCI call.
-- DB tables: `lci_sessions`, `lci_top_tasks` (with `status` for R/Y/G + `feel`, `obstacles`, `help_needed` JSON columns), `lci_highs_lows`.
+- `lci_sessions`, `lci_highs_lows` (via session), `lci_top_tasks` (via session), `action_items`, `action_item_updates` (via action item), `scheduled_lci`, `nudge_preferences` — owner can SELECT/INSERT/UPDATE/DELETE their own rows only.
+- `cohort_members`, `cohort_checkins`, `coach_insights`, `coaches` — readable/writable only by the owning coach (`coach_id` joined to `auth.uid()` via `coaches.user_id`).
+- `nudge_log` — readable by the row's owner; insert restricted to service role (edge functions).
+- Backfill: assign existing demo rows to a seeded demo user, or wipe demo data on migrate (ask user — default: keep demo, attribute to demo user).
+- Add the missing **foreign keys** the schema is missing today (`lci_top_tasks.session_id`, `action_items.source_lci_id`, `action_items.source_top_task_id`, `action_item_updates.action_item_id`, `cohort_*` → `coaches`, etc.) with `ON DELETE CASCADE` where appropriate.
 
-### 3. New Action Items tracker (`/actions`)
-- Lightweight list, dated, with inline status notes (free text), checkbox done, source link to LCI.
-- Auto-created when an LCI top task is saved (one Action Item per Top Task).
-- Filter: Open / Completed / All. Group by date.
-- Each action item supports an unlimited list of dated **status updates** ("Emailed on 04/15/2026, follow up email sent 04/24/2026").
-- Nudge engine: if action item is open >7 days with no status update, queue a WhatsApp nudge ("How's [Top Task] going? Reply with an update.").
-- DB: `action_items` (id, title, source_lci_id, due_date, completed_at), `action_item_updates` (id, action_item_id, note, created_at).
+## Phase 3 — Edge function hardening
 
-### 4. Nudges: add LCI prep reminder
-- New nudge type `lci_prep`: fired **3 days before** a scheduled LCI date (matches transcript: "proactive reminders to complete forms three days before a coaching call").
-- Add toggle in Nudges UI.
+- All edge functions: read `auth.uid()` from the JWT instead of trusting client-supplied `coach_id` / `phone_number`.
+- `supabase/config.toml`: set `verify_jwt = true` for `lci-summary`, `coach-analytics`, `boundless-assessment`, `boundless-coach`. Keep `nudge-engine` callable by cron only (service role).
+- Replace direct service-role queries that bypass RLS with user-scoped queries where the call originated from a user.
+- Add input validation (zod) on every function payload; return 400 on invalid input, 401/403 on auth failures.
+- Rate-limit AI endpoints (simple per-user counter table) to prevent credit drain.
+- Handle Lovable AI gateway 429 / 402 responses gracefully and surface a friendly toast.
 
-### 5. Bottom nav cleanup
-New tabs (max 5 for mobile): **Pulse · Check-in · LCI · Actions · Coach**. Move Nudges/Insights/Coaches into a "More" sheet or under Coach dashboard.
+## Phase 4 — Reliability, observability, UX polish
 
-## Technical details
+- Wrap every Supabase call site in try/catch with toast errors (today many silently fail).
+- Add a global `ErrorBoundary` and a `NotFound`-style fallback for thrown errors.
+- Loading skeletons on Pulse, LCI list, Actions, Coach Dashboard (currently blank flicker).
+- Empty states with CTAs ("No LCIs yet — start your first").
+- Form validation with `react-hook-form` + `zod` on Check-In, LCI New, Nudges prefs.
+- Confirm dialogs on destructive actions (delete LCI, delete action item).
+- Schedule `nudge-engine` via Supabase cron (`pg_cron`) hourly instead of manual trigger.
+- Add `created_by` / `updated_at` columns + triggers where missing.
 
-**Files to edit**
-- `src/lib/types.ts` — pillar enum + subtopics map + LCI/Action types
-- `src/pages/CheckIn.tsx` — 8-F renames, add reflection textareas
-- `src/pages/Index.tsx`, `src/pages/Correlations.tsx`, `src/pages/CoachDashboard.tsx` — pillar renames
-- `src/components/BottomNav.tsx` — restructure tabs
-- `src/App.tsx` — add `/lci`, `/lci/new`, `/actions` routes
-- `supabase/functions/boundless-assessment/index.ts` — pillar renames in prompt
-- `supabase/functions/coach-analytics/index.ts` — column renames
-- `supabase/functions/nudge-engine/index.ts` — add `lci_prep` template + scheduling logic
+## Phase 5 — Security review, testing, launch checklist
 
-**Files to create**
-- `src/pages/LCI.tsx` (list), `src/pages/LCINew.tsx` (form)
-- `src/pages/Actions.tsx`
-- `supabase/functions/lci-summary/index.ts`
-- Migration: rename pillar columns + create `lci_sessions`, `lci_top_tasks`, `lci_highs_lows`, `action_items`, `action_item_updates` (public RLS to match the rest of the app for now).
+- Run `supabase--linter` and `security--run_security_scan`; fix all errors and warnings.
+- Enable **Leaked Password Protection** (HIBP) in auth config.
+- Scrub `coach-analytics` demo seeding behind an admin-only flag (currently any caller can spawn demo data).
+- Add Playwright smoke tests: signup → check-in → create LCI → see action item → coach dashboard.
+- Add Deno tests for each edge function (auth required, invalid input rejected, happy path).
+- Update README with setup, env vars, deploy steps.
+- Final pass: remove `console.log`s, confirm no secrets in client bundle, verify Twilio sandbox → production number swap path is documented.
 
-**Out of scope for this round**
-- Auth (still public RLS, consistent with current state)
-- Workshop QR mode, gamification, AI sentiment-based tier 3 nudges (transcript "AI suggestions" — defer)
-- The "Bridge"/Scanner page stays as-is (just removed from primary nav)
+## Out of scope (call out, don't build)
 
-Approve and I'll implement in one pass.
+- Multi-tenant org/billing model
+- Mobile push notifications (WhatsApp via Twilio remains the channel)
+- The Bridge OCR scanner (kept as-is, hidden from primary nav)
+- Stripe/Paddle payments (separate request)
+
+## Suggested execution order
+
+1. Phase 1 (auth) — unblocks everything else
+2. Phase 2 (RLS + ownership) — same migration batch as Phase 1
+3. Phase 3 (edge function auth) — immediately after, since Phase 2 will break unauthenticated function calls
+4. Phase 4 (UX/reliability) — iterative
+5. Phase 5 (scan + tests + docs) — final gate before publish
+
+I recommend approving Phases 1–3 first as one implementation pass (the security-critical core), then reviewing before Phases 4–5.
