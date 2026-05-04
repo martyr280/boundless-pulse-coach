@@ -63,15 +63,62 @@ const AuthPage = () => {
     }
   };
 
+  const friendlyOAuthError = (err: unknown): string => {
+    const raw =
+      (err as any)?.message ??
+      (typeof err === 'string' ? err : '') ??
+      '';
+    const msg = String(raw).toLowerCase();
+
+    if (!navigator.onLine) {
+      return "You appear to be offline. Check your connection and try again.";
+    }
+    if (msg.includes('popup') && (msg.includes('closed') || msg.includes('blocked'))) {
+      return 'The Google sign-in window was closed before finishing. Please try again.';
+    }
+    if (msg.includes('cancel') || msg.includes('access_denied') || msg.includes('denied')) {
+      return 'Google sign-in was cancelled.';
+    }
+    if (msg.includes('network') || msg.includes('failed to fetch') || msg.includes('fetch')) {
+      return 'Network error reaching Google. Please check your connection and retry.';
+    }
+    if (msg.includes('timeout') || msg.includes('timed out')) {
+      return 'Google sign-in timed out. Please try again.';
+    }
+    if (msg.includes('redirect') || msg.includes('redirect_uri')) {
+      return "Sign-in configuration issue (redirect URL). Please contact support if this persists.";
+    }
+    if (msg.includes('invalid') && msg.includes('client')) {
+      return 'Google sign-in is misconfigured. Please contact support.';
+    }
+    if (msg.includes('rate') || msg.includes('429')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (msg.includes('email') && msg.includes('exists')) {
+      return 'An account with this email already exists. Try signing in with email & password instead.';
+    }
+    return "We couldn't complete Google sign-in. Please try again.";
+  };
+
   const handleGoogle = async () => {
+    if (!navigator.onLine) {
+      toast.error("You're offline. Please check your connection and try again.");
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await lovable.auth.signInWithOAuth('google', {
         redirect_uri: window.location.origin,
       });
-      if (result.error) toast.error('Google sign-in failed');
-    } catch {
-      toast.error('Google sign-in failed');
+      if (result?.redirected) return; // browser is navigating to Google
+      if (result?.error) {
+        toast.error(friendlyOAuthError(result.error));
+        return;
+      }
+      // Tokens received — AuthContext listener will navigate.
+    } catch (err) {
+      console.error('[Auth] Google sign-in error:', err);
+      toast.error(friendlyOAuthError(err));
     } finally {
       setSubmitting(false);
     }
