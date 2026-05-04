@@ -41,6 +41,13 @@ export type Database = {
             referencedRelation: "action_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "action_item_updates_item_fk"
+            columns: ["action_item_id"]
+            isOneToOne: false
+            referencedRelation: "action_items"
+            referencedColumns: ["id"]
+          },
         ]
       }
       action_items: {
@@ -52,6 +59,7 @@ export type Database = {
           source_lci_id: string | null
           source_top_task_id: string | null
           title: string
+          user_id: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -61,6 +69,7 @@ export type Database = {
           source_lci_id?: string | null
           source_top_task_id?: string | null
           title: string
+          user_id?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -70,13 +79,28 @@ export type Database = {
           source_lci_id?: string | null
           source_top_task_id?: string | null
           title?: string
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "action_items_source_lci_fk"
+            columns: ["source_lci_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "action_items_source_lci_id_fkey"
             columns: ["source_lci_id"]
             isOneToOne: false
             referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_source_top_task_fk"
+            columns: ["source_top_task_id"]
+            isOneToOne: false
+            referencedRelation: "lci_top_tasks"
             referencedColumns: ["id"]
           },
           {
@@ -118,6 +142,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "coach_insights_coach_fk"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "coach_insights_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
@@ -134,6 +165,7 @@ export type Database = {
           id: string
           name: string
           organization: string | null
+          user_id: string | null
         }
         Insert: {
           access_code?: string
@@ -142,6 +174,7 @@ export type Database = {
           id?: string
           name: string
           organization?: string | null
+          user_id?: string | null
         }
         Update: {
           access_code?: string
@@ -150,6 +183,7 @@ export type Database = {
           id?: string
           name?: string
           organization?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -201,6 +235,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "cohort_checkins_member_fk"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "cohort_members"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cohort_checkins_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: false
@@ -232,6 +273,13 @@ export type Database = {
           id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cohort_members_coach_fk"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cohort_members_coach_id_fkey"
             columns: ["coach_id"]
@@ -265,6 +313,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "lci_highs_lows_session_fk"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lci_highs_lows_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -281,6 +336,7 @@ export type Database = {
           id: string
           next_lci_date: string | null
           session_date: string
+          user_id: string | null
           year_review: string | null
         }
         Insert: {
@@ -290,6 +346,7 @@ export type Database = {
           id?: string
           next_lci_date?: string | null
           session_date?: string
+          user_id?: string | null
           year_review?: string | null
         }
         Update: {
@@ -299,6 +356,7 @@ export type Database = {
           id?: string
           next_lci_date?: string | null
           session_date?: string
+          user_id?: string | null
           year_review?: string | null
         }
         Relationships: []
@@ -339,6 +397,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "lci_top_tasks_session_fk"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "lci_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lci_top_tasks_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -355,6 +420,7 @@ export type Database = {
           phone_number: string
           sent_at: string
           status: string
+          user_id: string | null
         }
         Insert: {
           id?: string
@@ -363,6 +429,7 @@ export type Database = {
           phone_number: string
           sent_at?: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           id?: string
@@ -371,6 +438,7 @@ export type Database = {
           phone_number?: string
           sent_at?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -387,6 +455,7 @@ export type Database = {
           step_reminder: boolean
           timezone: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -400,6 +469,7 @@ export type Database = {
           step_reminder?: boolean
           timezone?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -412,6 +482,37 @@ export type Database = {
           preferred_hour?: number
           step_reminder?: boolean
           timezone?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          phone_number?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -424,6 +525,7 @@ export type Database = {
           phone_number: string
           prep_sent: boolean
           scheduled_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -432,6 +534,7 @@ export type Database = {
           phone_number: string
           prep_sent?: boolean
           scheduled_at: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -440,6 +543,28 @@ export type Database = {
           phone_number?: string
           prep_sent?: boolean
           scheduled_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -448,10 +573,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "member" | "coach" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -578,6 +709,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["member", "coach", "admin"],
+    },
   },
 } as const
