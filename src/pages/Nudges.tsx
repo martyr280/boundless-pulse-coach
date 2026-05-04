@@ -8,11 +8,11 @@ import { Slider } from '@/components/ui/slider';
 import { ArrowLeft, Bell, MessageCircle, Send, Clock, Loader2, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
-const NUDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nudge-engine`;
+import { useAuth } from '@/contexts/AuthContext';
 
 const NudgesPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [enabled, setEnabled] = useState(true);
@@ -44,13 +44,8 @@ const NudgesPage = () => {
     }
     setSaving(true);
     try {
-      const resp = await fetch(NUDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('nudge-engine', {
+        body: {
           mode: 'save_prefs',
           phone_number: phone,
           display_name: name,
@@ -60,11 +55,10 @@ const NudgesPage = () => {
           step_reminder: steps,
           preferred_hour: hour,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        }),
+        },
       });
-      if (!resp.ok) {
-        const err = await resp.json();
-        toast.error(err.error || 'Failed to save');
+      if (error || (data as any)?.error) {
+        toast.error((data as any)?.error || (error as any)?.message || 'Failed to save');
         return;
       }
       toast.success('Nudge preferences saved!');
@@ -83,20 +77,14 @@ const NudgesPage = () => {
     }
     setTesting(true);
     try {
-      const resp = await fetch(NUDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ mode: 'test' }),
+      const { data, error } = await supabase.functions.invoke('nudge-engine', {
+        body: { mode: 'test' },
       });
-      const data = await resp.json();
-      if (resp.ok && data.success) {
+      if (!error && (data as any)?.success) {
         toast.success('Test nudge sent via WhatsApp!');
         loadNudgeLog();
       } else {
-        toast.error(data.error || 'Failed to send test nudge');
+        toast.error((data as any)?.error || 'Failed to send test nudge');
       }
     } catch (e) {
       console.error(e);
