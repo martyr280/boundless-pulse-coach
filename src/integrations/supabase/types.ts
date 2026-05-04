@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_audit_log: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          required_roles: string[]
+          route: string
+          user_agent: string | null
+          user_id: string | null
+          user_roles: string[]
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          required_roles?: string[]
+          route: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_roles?: string[]
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          required_roles?: string[]
+          route?: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_roles?: string[]
+        }
+        Relationships: []
+      }
       action_item_updates: {
         Row: {
           action_item_id: string
