@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus, Check, MessageSquarePlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface ActionItem {
@@ -22,6 +23,7 @@ type Filter = 'open' | 'done' | 'all';
 
 const ActionsPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState<ActionItem[]>([]);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [filter, setFilter] = useState<Filter>('open');
@@ -38,8 +40,8 @@ const ActionsPage = () => {
   useEffect(() => { load(); }, [load]);
 
   const addItem = async () => {
-    if (!newTitle.trim()) return;
-    const { error } = await supabase.from('action_items').insert({ title: newTitle.trim() });
+    if (!newTitle.trim() || !user) return;
+    const { error } = await supabase.from('action_items').insert({ title: newTitle.trim(), user_id: user.id });
     if (error) { toast.error('Failed to add'); return; }
     setNewTitle('');
     load();
