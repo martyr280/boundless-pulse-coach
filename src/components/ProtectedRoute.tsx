@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, AppRole } from '@/contexts/AuthContext';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface Props {
   children: React.ReactNode;
@@ -56,22 +56,14 @@ const ProtectedRoute = ({
     );
   }
 
-  // 5. Enforce role.
+  // 5. Enforce role → redirect to dedicated /access-denied page.
   if (required.length > 0 && !hasRole(required) && !isAdmin) {
-    if (unauthorizedRedirect) {
-      return <Navigate to={unauthorizedRedirect} replace />;
-    }
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <ShieldAlert className="h-10 w-10 text-destructive mb-3" />
-        <h1 className="text-xl font-black uppercase tracking-widest mb-1">
-          Access denied
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          You don't have permission to view this page. If you think this is a
-          mistake, contact your coach or an administrator.
-        </p>
-      </div>
+      <Navigate
+        to={unauthorizedRedirect ?? '/access-denied'}
+        replace
+        state={{ from: location.pathname, required }}
+      />
     );
   }
 
