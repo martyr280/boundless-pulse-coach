@@ -1,0 +1,46 @@
+import { ComponentType } from 'react';
+import { AppRole } from '@/contexts/AuthContext';
+import Index from '@/pages/Index';
+import CheckIn from '@/pages/CheckIn';
+import Scanner from '@/pages/Scanner';
+import Coach from '@/pages/Coach';
+import Correlations from '@/pages/Correlations';
+import Nudges from '@/pages/Nudges';
+import CoachDashboard from '@/pages/CoachDashboard';
+import LCI from '@/pages/LCI';
+import LCINew from '@/pages/LCINew';
+import Actions from '@/pages/Actions';
+
+export interface ProtectedRouteConfig {
+  path: string;
+  component: ComponentType;
+  /** If omitted, route only requires authentication. */
+  allowedRoles?: AppRole[];
+  /** Optional human label (used by nav / debugging). */
+  label?: string;
+}
+
+/**
+ * Single source of truth for every authenticated route.
+ * Add a new entry here instead of editing <Routes> directly so that
+ * permission checks stay consistent across the app.
+ */
+export const protectedRoutes: ProtectedRouteConfig[] = [
+  { path: '/',            component: Index,          label: 'Pulse' },
+  { path: '/checkin',     component: CheckIn,        label: 'Your Now' },
+  { path: '/scanner',     component: Scanner,        label: 'Scanner' },
+  { path: '/coach',       component: Coach,          label: 'AI Coach' },
+  { path: '/correlations',component: Correlations,   label: 'Correlations' },
+  { path: '/nudges',      component: Nudges,         label: 'Nudges' },
+  { path: '/lci',         component: LCI,            label: 'LCI' },
+  { path: '/lci/new',     component: LCINew,         label: 'New LCI' },
+  { path: '/actions',     component: Actions,        label: 'Actions' },
+
+  // Coach / admin only
+  {
+    path: '/coaches',
+    component: CoachDashboard,
+    allowedRoles: ['coach', 'admin'],
+    label: 'Coach Dashboard',
+  },
+];
