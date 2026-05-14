@@ -361,7 +361,7 @@ function ConnectionSection({
           <p className="text-base font-bold text-foreground truncate">
             {profile?.display_name || 'Your partner'}
           </p>
-          <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+          
         </div>
         <Button
           variant="outline"
