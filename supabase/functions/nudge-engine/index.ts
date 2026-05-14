@@ -50,7 +50,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const mode = body?.mode || "scheduled";
-    const fromNumber = body?.from_number;
+    
 
     // Modes that require auth
     const userModes = new Set(["save_prefs", "test"]);
