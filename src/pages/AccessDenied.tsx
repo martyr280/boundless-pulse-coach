@@ -65,12 +65,12 @@ const AccessDenied = () => {
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
             <Button
               variant="outline"
-              className="rounded-2xl font-bold"
+              className="rounded-full font-bold uppercase tracking-[0.18em] text-xs"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="h-4 w-4" /> Go back
             </Button>
-            <Button asChild className="rounded-2xl font-bold">
+            <Button asChild variant="premium" className="rounded-full font-bold uppercase tracking-[0.18em] text-xs">
               <Link to="/">
                 <Home className="h-4 w-4" /> Back to dashboard
               </Link>
