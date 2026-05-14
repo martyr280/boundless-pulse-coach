@@ -179,6 +179,8 @@ const CorrelationsPage = () => {
           </CardContent>
         </Card>
       </div>
+        </>
+      )}
     </div>
   );
 };
