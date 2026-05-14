@@ -4,14 +4,16 @@ import {
   ScatterChart, Scatter, ZAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getEntries, getLatestCheckIn } from '@/lib/store';
+import { useJournalEntries } from '@/hooks/useJournalEntries';
+import { useLatestCheckin } from '@/hooks/useCheckins';
 import { DEFAULT_HABITS } from '@/lib/types';
-import { ArrowLeft, BarChart3, Lightbulb } from 'lucide-react';
+import { ArrowLeft, BarChart3, Lightbulb, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CorrelationsPage = () => {
   const navigate = useNavigate();
-  const entries = getEntries();
-  const latestCheckIn = getLatestCheckIn();
+  const { data: entries = [] } = useJournalEntries();
+  const { data: latestCheckIn } = useLatestCheckin();
 
   // Graph A: Daily Rating + Step Count
   const graphAData = entries.map((e) => ({
@@ -62,6 +64,25 @@ const CorrelationsPage = () => {
       </div>
       <p className="text-muted-foreground text-sm mb-6">See what drives your best days.</p>
 
+      {entries.length < 3 ? (
+        <Card className="border-2 rounded-3xl bg-primary/5">
+          <CardContent className="p-6 text-center space-y-3">
+            <Sparkles className="h-6 w-6 text-primary mx-auto" />
+            <h3 className="text-base font-extrabold uppercase tracking-[0.18em]">Not enough data yet</h3>
+            <p className="text-sm text-muted-foreground">
+              Log a few days in The Bridge to start seeing patterns between your habits, steps, and how you feel.
+            </p>
+            <Button
+              variant="premium"
+              className="rounded-full uppercase tracking-[0.18em] px-6 h-10 font-bold"
+              onClick={() => navigate('/scanner')}
+            >
+              Open The Bridge
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
       {/* Graph A */}
       <Card className="border-2 rounded-3xl mb-6">
         <CardHeader className="pb-2">
@@ -158,6 +179,8 @@ const CorrelationsPage = () => {
           </CardContent>
         </Card>
       </div>
+        </>
+      )}
     </div>
   );
 };

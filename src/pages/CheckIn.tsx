@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Textarea } from '@/components/ui/textarea';
-import { PILLARS, PILLAR_SUBTOPICS, PillarScore, CheckIn } from '@/lib/types';
-import { addCheckIn } from '@/lib/store';
-import { ArrowLeft, Check, Loader2, Sparkles, Target, TrendingUp, Lightbulb, Link2, ArrowRight } from 'lucide-react';
+import { PILLARS, PILLAR_SUBTOPICS, PillarScore } from '@/lib/types';
+import { useCreateCheckin } from '@/hooks/useCheckins';
+import { ArrowLeft, Loader2, Sparkles, Target, TrendingUp, Lightbulb, Link2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -38,6 +38,7 @@ const CheckInPage = () => {
   const [report, setReport] = useState<ReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [phase, setPhase] = useState<'rating' | 'report'>('rating');
+  const createCheckin = useCreateCheckin();
 
   const handleSubmit = async () => {
     const pillarScores: PillarScore[] = PILLARS.map((p) => ({
@@ -46,15 +47,18 @@ const CheckInPage = () => {
       whats_happening: whats[p],
       how_it_feels: feels[p],
     }));
-    const checkin: CheckIn = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      scores: pillarScores,
-    };
-    addCheckIn(checkin);
+
+    setIsGenerating(true);
+    try {
+      await createCheckin.mutateAsync(pillarScores);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Failed to save check-in');
+      setIsGenerating(false);
+      return;
+    }
 
     // Generate AI report
-    setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('boundless-assessment', {
         body: { scores: pillarScores },

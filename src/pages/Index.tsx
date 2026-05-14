@@ -2,8 +2,9 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { useNavigate } from 'react-router-dom';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, TrendingUp, Footprints, Star } from 'lucide-react';
-import { getLatestCheckIn, getEntries } from '@/lib/store';
+import { Activity, TrendingUp, Footprints, Star, Sparkles } from 'lucide-react';
+import { useLatestCheckin } from '@/hooks/useCheckins';
+import { useJournalEntries } from '@/hooks/useJournalEntries';
 import { PILLARS } from '@/lib/types';
 import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
@@ -13,8 +14,8 @@ import heroMountains from '@/assets/hero-mountains.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
-  const latestCheckIn = getLatestCheckIn();
-  const entries = getEntries();
+  const { data: latestCheckIn } = useLatestCheckin();
+  const { data: entries = [] } = useJournalEntries();
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
 
   const radarData = latestCheckIn
@@ -78,49 +79,68 @@ const Index = () => {
         </Button>
       </HeroFrame>
 
-      {/* Pulse Radar */}
-      <CinematicCard className="mb-6 -mt-12 relative z-20 mx-2">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-black uppercase tracking-[0.18em] flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" />
-            Pulse Radar
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                <PolarGrid stroke="hsl(var(--border))" />
-                <PolarAngleAxis
-                  dataKey="pillar"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
-                />
-                <PolarRadiusAxis angle={90} domain={[0, 10]} tick={false} axisLine={false} />
-                <Radar
-                  name="Life Score"
-                  dataKey="score"
-                  stroke="hsl(var(--primary))"
-                  fill="hsl(var(--primary))"
-                  fillOpacity={0.25}
-                  strokeWidth={2}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-          {priorityPillars.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {priorityPillars.map((p) => (
-                <span
-                  key={p}
-                  className="text-[10px] font-bold px-3 py-1 rounded-full bg-primary/15 text-primary uppercase tracking-[0.18em]"
-                >
-                  ⚡ {p}
-                </span>
-              ))}
+      {/* Pulse Radar or empty state */}
+      {latestCheckIn ? (
+        <CinematicCard className="mb-6 -mt-12 relative z-20 mx-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-black uppercase tracking-[0.18em] flex items-center gap-2">
+              <Activity className="h-4 w-4 text-primary" />
+              Pulse Radar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis
+                    dataKey="pillar"
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
+                  />
+                  <PolarRadiusAxis angle={90} domain={[0, 10]} tick={false} axisLine={false} />
+                  <Radar
+                    name="Life Score"
+                    dataKey="score"
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.25}
+                    strokeWidth={2}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
-          )}
-        </CardContent>
-      </CinematicCard>
+            {priorityPillars.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {priorityPillars.map((p) => (
+                  <span
+                    key={p}
+                    className="text-[10px] font-bold px-3 py-1 rounded-full bg-primary/15 text-primary uppercase tracking-[0.18em]"
+                  >
+                    ⚡ {p}
+                  </span>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </CinematicCard>
+      ) : (
+        <CinematicCard className="mb-6 -mt-12 relative z-20 mx-2">
+          <CardContent className="p-6 text-center space-y-3">
+            <Sparkles className="h-6 w-6 text-primary mx-auto" />
+            <h3 className="h-display text-base">Take your first check-in</h3>
+            <p className="text-sm text-muted-foreground">
+              Rate the seven pillars to see your life balance and unlock the AI report.
+            </p>
+            <Button
+              variant="premium"
+              className="rounded-full uppercase tracking-[0.18em] px-6 h-10 font-bold"
+              onClick={() => navigate('/checkin')}
+            >
+              Start Check-in
+            </Button>
+          </CardContent>
+        </CinematicCard>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

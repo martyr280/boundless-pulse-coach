@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { DEFAULT_HABITS, JournalEntry } from '@/lib/types';
-import { addEntry } from '@/lib/store';
+import { DEFAULT_HABITS } from '@/lib/types';
+import { useCreateJournalEntry } from '@/hooks/useJournalEntries';
+import { toast } from 'sonner';
 import { Camera, ArrowLeft, Check, Upload } from 'lucide-react';
 
 type Phase = 'capture' | 'review';
@@ -24,19 +25,24 @@ const ScannerPage = () => {
     Object.fromEntries(DEFAULT_HABITS.map((h) => [h, false]))
   );
 
-  const handleSave = () => {
-    const entry: JournalEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      dailyRating,
-      stepCount: parseInt(stepCount) || 0,
-      topPriority,
-      topPriorityDone,
-      gratitude: [gratitude[0], gratitude[1], gratitude[2]],
-      bestSelfHabits: habits,
-    };
-    addEntry(entry);
-    navigate('/');
+  const createEntry = useCreateJournalEntry();
+
+  const handleSave = async () => {
+    try {
+      await createEntry.mutateAsync({
+        dailyRating,
+        stepCount: parseInt(stepCount) || 0,
+        topPriority,
+        topPriorityDone,
+        gratitude: [gratitude[0], gratitude[1], gratitude[2]],
+        bestSelfHabits: habits,
+      });
+      toast.success('Journal entry saved');
+      navigate('/');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Failed to save entry');
+    }
   };
 
   if (phase === 'capture') {
