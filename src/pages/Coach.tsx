@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { addTruthStatement, getTruthStatements } from '@/lib/store';
+import { useTruthStatements, useCreateTruthStatement } from '@/hooks/useTruthStatements';
 import { Brain, Send, Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,7 +36,8 @@ const CoachPage = () => {
   const [truthStatement, setTruthStatement] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const savedTruths = getTruthStatements();
+  const { data: savedTruths = [] } = useTruthStatements();
+  const createTruth = useCreateTruthStatement();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -160,20 +161,23 @@ const CoachPage = () => {
     await streamChat(apiMessages);
   };
 
-  const saveTruth = () => {
-    addTruthStatement({
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      priority,
-      levels: messages.filter((m) => m.role === 'user').map((m) => m.content),
-      statement: truthStatement,
-    });
-    setStarted(false);
-    setMessages([]);
-    setPriority('');
-    setDepth(0);
-    setTruthStatement('');
-    toast.success('Truth Statement saved!');
+  const saveTruth = async () => {
+    try {
+      await createTruth.mutateAsync({
+        priority,
+        levels: messages.filter((m) => m.role === 'user').map((m) => m.content),
+        statement: truthStatement,
+      });
+      setStarted(false);
+      setMessages([]);
+      setPriority('');
+      setDepth(0);
+      setTruthStatement('');
+      toast.success('Truth Statement saved!');
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Failed to save Truth Statement');
+    }
   };
 
   const complete = truthStatement.length > 0;
