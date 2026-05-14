@@ -678,6 +678,30 @@ export type Database = {
           },
         ]
       }
+      user_life_vision: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          vision_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          vision_text?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          vision_text?: string
+        }
+        Relationships: []
+      }
       user_pillar_scores: {
         Row: {
           checkin_id: string
@@ -742,6 +766,7 @@ export type Database = {
           created_at: string
           id: string
           levels: Json
+          linked_top_task_id: string | null
           priority: string
           statement: string
           user_id: string
@@ -750,6 +775,7 @@ export type Database = {
           created_at?: string
           id?: string
           levels?: Json
+          linked_top_task_id?: string | null
           priority: string
           statement: string
           user_id: string
@@ -758,11 +784,20 @@ export type Database = {
           created_at?: string
           id?: string
           levels?: Json
+          linked_top_task_id?: string | null
           priority?: string
           statement?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_truth_statements_linked_top_task_id_fkey"
+            columns: ["linked_top_task_id"]
+            isOneToOne: false
+            referencedRelation: "lci_top_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_weekly_resets: {
         Row: {
@@ -818,6 +853,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           week_start_date?: string
+        }
+        Relationships: []
+      }
+      user_year_priorities: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          position: number
+          priority_text: string
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          position?: number
+          priority_text: string
+          updated_at?: string
+          user_id: string
+          year?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          position?: number
+          priority_text?: string
+          updated_at?: string
+          user_id?: string
+          year?: number
         }
         Relationships: []
       }
