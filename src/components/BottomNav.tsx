@@ -59,13 +59,20 @@ const BottomNav = () => {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center py-3 text-[10px] font-semibold transition-colors ${
+              `relative flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`
             }
           >
-            <Icon className="h-5 w-5 mb-0.5" />
-            {label}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary shadow-glow" />
+                )}
+                <Icon className="h-5 w-5 mb-0.5" />
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
 
