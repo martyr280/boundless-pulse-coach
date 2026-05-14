@@ -217,25 +217,26 @@ const CoachDashboard = () => {
       </button>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Mountain className="h-6 w-6 text-primary" />
+      <div className="mb-6">
+        <span className="eyebrow">Coaches Module</span>
+        <div className="flex items-center justify-between mt-2">
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-wider">Coaches Module</h1>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+            <h1 className="h-display text-3xl">Cohort <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">overview</span></h1>
+            <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] mt-1">
               {coachName} · {members.length} Members
             </p>
           </div>
+          <Button
+            onClick={runAnalysis}
+            disabled={analyzing}
+            variant="premium"
+            size="sm"
+            className="font-bold rounded-full uppercase tracking-[0.18em] text-xs"
+          >
+            {analyzing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+            Analyze
+          </Button>
         </div>
-        <Button
-          onClick={runAnalysis}
-          disabled={analyzing}
-          size="sm"
-          className="font-bold rounded-2xl uppercase tracking-wider text-xs"
-        >
-          {analyzing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
-          Analyze
-        </Button>
       </div>
 
       {/* AI Insights */}
