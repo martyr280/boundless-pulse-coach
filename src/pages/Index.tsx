@@ -2,8 +2,9 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { useNavigate } from 'react-router-dom';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, TrendingUp, Footprints, Star } from 'lucide-react';
-import { getLatestCheckIn, getEntries } from '@/lib/store';
+import { Activity, TrendingUp, Footprints, Star, Sparkles } from 'lucide-react';
+import { useLatestCheckin } from '@/hooks/useCheckins';
+import { useJournalEntries } from '@/hooks/useJournalEntries';
 import { PILLARS } from '@/lib/types';
 import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
@@ -13,8 +14,8 @@ import heroMountains from '@/assets/hero-mountains.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
-  const latestCheckIn = getLatestCheckIn();
-  const entries = getEntries();
+  const { data: latestCheckIn } = useLatestCheckin();
+  const { data: entries = [] } = useJournalEntries();
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
 
   const radarData = latestCheckIn
