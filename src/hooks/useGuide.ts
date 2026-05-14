@@ -104,7 +104,7 @@ export function useUpdateYearPriority() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; priority_text?: string; position?: number }) => {
-      const patch: Record<string, unknown> = {};
+      const patch: { priority_text?: string; position?: number } = {};
       if (input.priority_text !== undefined) patch.priority_text = input.priority_text;
       if (input.position !== undefined) patch.position = input.position;
       const { error } = await supabase.from('user_year_priorities').update(patch).eq('id', input.id);
