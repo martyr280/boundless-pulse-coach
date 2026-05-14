@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const tabs = [
-  { to: '/', icon: Home, label: 'Pulse' },
+  { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
