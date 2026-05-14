@@ -157,7 +157,9 @@ function PriorityRow({ p }: { p: YearPriority }) {
       )}
       <button
         type="button"
-        onClick={() => del.mutate(p.id)}
+        onClick={() => del.mutate(p.id, {
+          onError: (e: any) => toast.error(e?.message || 'Failed to delete priority'),
+        })}
         aria-label="Delete priority"
         className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
       >
