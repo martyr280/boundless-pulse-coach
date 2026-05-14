@@ -151,7 +151,6 @@ function IncomingRequestRow({
         <p className="text-sm font-bold text-foreground truncate">
           {profile?.display_name || 'Unknown user'}
         </p>
-        <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
       </div>
       <Button size="sm" variant="ghost" onClick={() => onRespond('declined')}>
         <X className="h-4 w-4" />
