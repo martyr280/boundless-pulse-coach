@@ -81,7 +81,7 @@ const BottomNav = () => {
             <button
               type="button"
               aria-label="Sign out"
-              className="flex-1 flex flex-col items-center py-3 text-[10px] font-semibold text-destructive hover:text-destructive/80 transition-colors"
+              className="flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-destructive hover:text-destructive/80 transition-colors"
             >
               <LogOut className="h-5 w-5 mb-0.5" />
               Sign out
