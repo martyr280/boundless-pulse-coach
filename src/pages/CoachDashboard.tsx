@@ -58,6 +58,62 @@ const CoachDashboard = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [coachName, setCoachName] = useState('');
 
+  // Push-to-client state
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+  const [memberActionItems, setMemberActionItems] = useState<ActionItem[]>([]);
+  const [actionItemsLoading, setActionItemsLoading] = useState(false);
+  const [pushedIds, setPushedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAuthUserId(data.user?.id ?? null));
+  }, []);
+
+  const selectedMember = members.find((m) => m.id === selectedMemberId) ?? null;
+
+  useEffect(() => {
+    if (!selectedMember?.user_id) {
+      setMemberActionItems([]);
+      return;
+    }
+    setActionItemsLoading(true);
+    supabase
+      .from('action_items')
+      .select('id, title, due_date, completed_at, created_at')
+      .eq('user_id', selectedMember.user_id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error('Failed to load action items');
+          setMemberActionItems([]);
+        } else {
+          setMemberActionItems((data ?? []) as ActionItem[]);
+        }
+        setActionItemsLoading(false);
+      });
+  }, [selectedMember?.user_id]);
+
+  const pushToClient = async (actionItemId: string) => {
+    if (!authUserId) {
+      toast.error('Not signed in');
+      return;
+    }
+    const { error } = await supabase.from('action_item_updates').insert({
+      action_item_id: actionItemId,
+      coach_id: authUserId,
+      update_type: 'pushed',
+      update_text: 'Pushed to client',
+      note: 'Pushed to client',
+    });
+    if (error) {
+      toast.error('Failed to push');
+      return;
+    }
+    setPushedIds((s) => new Set(s).add(actionItemId));
+    toast.success('Sent to client');
+  };
+
   const loadData = useCallback(async (cId: string) => {
     // Load members
     const { data: membersData } = await supabase
