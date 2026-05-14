@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Target, ClipboardList, ListChecks, Brain, LogOut, CalendarDays, BookOpen } from 'lucide-react';
+import { Target, ClipboardList, ListChecks, Brain, LogOut, CalendarDays, BookOpen, Users } from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ const tabs = [
   { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
+  { to: '/partner', icon: Users, label: 'Partner' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
