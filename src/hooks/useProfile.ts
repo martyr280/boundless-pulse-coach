@@ -42,3 +42,20 @@ export function useUpdateProfile() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profile', user?.id] }),
   });
 }
+
+export function useUserRole() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['user_role', user?.id],
+    enabled: !!user,
+    queryFn: async (): Promise<string> => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.role as string) ?? 'member';
+    },
+  });
+}
