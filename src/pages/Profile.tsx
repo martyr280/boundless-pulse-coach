@@ -91,7 +91,9 @@ const ProfilePage = () => {
   useEffect(() => {
     if (profile && !profile.timezone) {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      updateProfile.mutate({ timezone: tz });
+      updateProfile.mutate({ timezone: tz }, {
+        onError: (e: any) => toast.error(e?.message || 'Failed to save timezone'),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
