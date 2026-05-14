@@ -764,6 +764,63 @@ export type Database = {
         }
         Relationships: []
       }
+      user_weekly_resets: {
+        Row: {
+          business_high: string | null
+          business_low: string | null
+          created_at: string
+          faith_score: number | null
+          family_score: number | null
+          field_score: number | null
+          finance_score: number | null
+          fitness_score: number | null
+          friends_score: number | null
+          fun_score: number | null
+          id: string
+          personal_high: string | null
+          personal_low: string | null
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          business_high?: string | null
+          business_low?: string | null
+          created_at?: string
+          faith_score?: number | null
+          family_score?: number | null
+          field_score?: number | null
+          finance_score?: number | null
+          fitness_score?: number | null
+          friends_score?: number | null
+          fun_score?: number | null
+          id?: string
+          personal_high?: string | null
+          personal_low?: string | null
+          updated_at?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          business_high?: string | null
+          business_low?: string | null
+          created_at?: string
+          faith_score?: number | null
+          family_score?: number | null
+          field_score?: number | null
+          finance_score?: number | null
+          fitness_score?: number | null
+          friends_score?: number | null
+          fun_score?: number | null
+          id?: string
+          personal_high?: string | null
+          personal_low?: string | null
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
