@@ -101,6 +101,7 @@ const CoachDashboard = () => {
 
       return {
         id: m.id,
+        user_id: (m as any).user_id ?? null,
         alias: m.alias,
         display_name: m.display_name,
         avgScores,
