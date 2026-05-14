@@ -38,6 +38,42 @@ const LCINewPage = () => {
   const [loadingPrior, setLoadingPrior] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Quick Pulse re-assessment (Enhancement 3)
+  const { data: latestCheckin } = useLatestCheckin();
+  const createCheckin = useCreateCheckin();
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [pulseSaved, setPulseSaved] = useState(false);
+  const [pulseScores, setPulseScores] = useState<Record<Pillar, number>>(
+    () => Object.fromEntries(PILLARS.map((p) => [p, 5])) as Record<Pillar, number>,
+  );
+
+  useEffect(() => {
+    if (latestCheckin?.scores?.length) {
+      setPulseScores((prev) => {
+        const next = { ...prev };
+        for (const s of latestCheckin.scores) next[s.pillar] = s.score;
+        return next;
+      });
+    }
+  }, [latestCheckin]);
+
+  const handleSavePulse = async () => {
+    const payload: PillarScore[] = PILLARS.map((p) => ({
+      pillar: p,
+      score: pulseScores[p],
+      whats_happening: '',
+      how_it_feels: '',
+    }));
+    try {
+      await createCheckin.mutateAsync(payload);
+      setPulseSaved(true);
+      setPulseOpen(false);
+      toast.success('Pulse updated.');
+    } catch {
+      toast.error('Failed to save pulse');
+    }
+  };
+
   // Load prior session's top tasks for review
   useEffect(() => {
     (async () => {
