@@ -1,70 +1,71 @@
-# Production Readiness Plan
+## Re-theme: Boundless.me visual overhaul
 
-The app currently runs with **public RLS** on every table, no authentication, no per-user data scoping, and no role separation between members and coaches. That's fine for a demo but blocks real-world use. This plan closes those gaps in five focused phases.
+Bring the app's look in line with boundless.me — cinematic mountain photography, deep charcoal canvas, burnt-orange burn highlights, ultra-wide-tracked uppercase display type, and a Playfair Display italic serif for human/quote moments. Scope is presentation only; no business logic, schema, or auth changes.
 
-## Phase 1 — Authentication & user identity
+### A. Design tokens (`src/index.css`, `tailwind.config.ts`)
 
-- Add Lovable Cloud auth (email/password + Google).
-- New routes: `/auth` (sign in / sign up / forgot password) and `/reset-password`.
-- Create `profiles` table (`id` FK → `auth.users`, `display_name`, `phone_number`, `timezone`, `avatar_url`, `created_at`) with auto-create trigger on signup.
-- Create `user_roles` table + `app_role` enum (`member`, `coach`, `admin`) + `has_role(uuid, app_role)` SECURITY DEFINER function. Roles **never** stored on profiles.
-- Wrap app in an `AuthProvider` using `onAuthStateChange` (set listener before `getSession`).
-- Protected route wrapper redirects unauthenticated users to `/auth`.
-- Coach routes (`/coach`) gated by `has_role(auth.uid(), 'coach')`.
+Refine the existing palette toward the site's actual sampled values and add depth tokens:
 
-## Phase 2 — Per-user data ownership + real RLS
+- `--background` → `220 14% 7%` (deeper near-black charcoal)
+- `--card` → `220 12% 11%` with subtle warm tint
+- `--primary` (burnt orange) → `22 90% 52%` with `--primary-glow` `28 95% 60%`
+- `--accent-warm` → warm amber `35 85% 55%` for secondary highlights
+- New `--gradient-hero` (radial: charcoal → orange burn at edges, mimicking their hero)
+- New `--gradient-overlay` (top-to-bottom transparent → charcoal, for image overlays)
+- New `--shadow-cinematic` (large soft orange-tinted shadow for hero cards)
+- New `--shadow-elevated` (crisp neutral shadow for cards)
+- Border radius tightened: `--radius` → `1rem` (cards) with new `--radius-pill` for buttons
+- Add `font-serif` family in Tailwind config
 
-Add `user_id uuid references auth.users(id)` to every user-owned table and replace the `Public *` policies:
+Add Tailwind utilities for `bg-gradient-hero`, `shadow-cinematic`, `text-balance`, and a `tracking-display` (0.18em).
 
-- `lci_sessions`, `lci_highs_lows` (via session), `lci_top_tasks` (via session), `action_items`, `action_item_updates` (via action item), `scheduled_lci`, `nudge_preferences` — owner can SELECT/INSERT/UPDATE/DELETE their own rows only.
-- `cohort_members`, `cohort_checkins`, `coach_insights`, `coaches` — readable/writable only by the owning coach (`coach_id` joined to `auth.uid()` via `coaches.user_id`).
-- `nudge_log` — readable by the row's owner; insert restricted to service role (edge functions).
-- Backfill: assign existing demo rows to a seeded demo user, or wipe demo data on migrate (ask user — default: keep demo, attribute to demo user).
-- Add the missing **foreign keys** the schema is missing today (`lci_top_tasks.session_id`, `action_items.source_lci_id`, `action_items.source_top_task_id`, `action_item_updates.action_item_id`, `cohort_*` → `coaches`, etc.) with `ON DELETE CASCADE` where appropriate.
+### B. Typography (`src/index.css`)
 
-## Phase 3 — Edge function hardening
+- Keep Inter (400–900) for UI/body
+- Add Playfair Display (italic 400/500) for pull quotes, taglines, and emotional accents
+- Add reusable typography classes: `.h-display` (uppercase, `font-black`, `tracking-display`, balanced), `.h-quote` (Playfair italic), `.eyebrow` (small uppercase orange label like "IT'S TIME TO PURSUE")
 
-- All edge functions: read `auth.uid()` from the JWT instead of trusting client-supplied `coach_id` / `phone_number`.
-- `supabase/config.toml`: set `verify_jwt = true` for `lci-summary`, `coach-analytics`, `boundless-assessment`, `boundless-coach`. Keep `nudge-engine` callable by cron only (service role).
-- Replace direct service-role queries that bypass RLS with user-scoped queries where the call originated from a user.
-- Add input validation (zod) on every function payload; return 400 on invalid input, 401/403 on auth failures.
-- Rate-limit AI endpoints (simple per-user counter table) to prevent credit drain.
-- Handle Lovable AI gateway 429 / 402 responses gracefully and surface a friendly toast.
+### C. Reusable presentation components (new, `src/components/visual/`)
 
-## Phase 4 — Reliability, observability, UX polish
+1. `HeroFrame.tsx` — full-bleed background image slot with gradient overlay, eyebrow + display headline + body + CTA. Used on Pulse top, Auth left panel, Coach hero.
+2. `CinematicCard.tsx` — card variant with warm border glow and subtle inner gradient.
+3. `PullQuote.tsx` — Playfair italic quote with orange quotation glyph and attribution.
+4. `SectionEyebrow.tsx` — small uppercase orange chip used to label sections.
+5. `MountainMark.tsx` — refined SVG mark replacing the lucide `Mountain` icon to match the site's triangular peak logo.
 
-- Wrap every Supabase call site in try/catch with toast errors (today many silently fail).
-- Add a global `ErrorBoundary` and a `NotFound`-style fallback for thrown errors.
-- Loading skeletons on Pulse, LCI list, Actions, Coach Dashboard (currently blank flicker).
-- Empty states with CTAs ("No LCIs yet — start your first").
-- Form validation with `react-hook-form` + `zod` on Check-In, LCI New, Nudges prefs.
-- Confirm dialogs on destructive actions (delete LCI, delete action item).
-- Schedule `nudge-engine` via Supabase cron (`pg_cron`) hourly instead of manual trigger.
-- Add `created_by` / `updated_at` columns + triggers where missing.
+### D. Imagery
 
-## Phase 5 — Security review, testing, launch checklist
+Generate two reusable hero images (premium quality, no text):
 
-- Run `supabase--linter` and `security--run_security_scan`; fix all errors and warnings.
-- Enable **Leaked Password Protection** (HIBP) in auth config.
-- Scrub `coach-analytics` demo seeding behind an admin-only flag (currently any caller can spawn demo data).
-- Add Playwright smoke tests: signup → check-in → create LCI → see action item → coach dashboard.
-- Add Deno tests for each edge function (auth required, invalid input rejected, happy path).
-- Update README with setup, env vars, deploy steps.
-- Final pass: remove `console.log`s, confirm no secrets in client bundle, verify Twilio sandbox → production number swap path is documented.
+- `src/assets/hero-mountains.jpg` — wide cinematic mountain valley, golden-hour orange rim light, dark foreground (matches their hero)
+- `src/assets/hero-summit.jpg` — alpine ridgeline at dawn for Coach/Auth pages
 
-## Out of scope (call out, don't build)
+### E. Page-level restructuring (presentation only)
 
-- Multi-tenant org/billing model
-- Mobile push notifications (WhatsApp via Twilio remains the channel)
-- The Bridge OCR scanner (kept as-is, hidden from primary nav)
-- Stripe/Paddle payments (separate request)
+1. **`src/pages/Index.tsx` (Pulse)** — wrap top in `HeroFrame` with mountain background, eyebrow "YOUR MONTHLY PULSE", display headline, then radar card floats over the gradient seam. Replace icon with `MountainMark`. Quick-stats become `CinematicCard` trio.
+2. **`src/pages/Auth.tsx`** — split-screen: left = full-bleed mountain image with logo, eyebrow, display tagline ("A LIFE THAT FEELS LIKE YOURS") and a Playfair quote rotator; right = existing form on dark panel. Mobile collapses to stacked.
+3. **`src/pages/Coach.tsx`** — slim hero band with eyebrow + display title; chat surface in a `CinematicCard`.
+4. **`src/pages/CoachDashboard.tsx`** — header band gets eyebrow/display treatment; metric tiles become `CinematicCard`.
+5. **`src/components/BottomNav.tsx`** — refined active state (orange top-bar indicator + glow), tighter type, swap Pulse icon to `MountainMark`.
+6. **`src/pages/AccessDenied.tsx`, `NotFound.tsx`** — adopt `HeroFrame` + Playfair line for the message.
 
-## Suggested execution order
+### F. Buttons & micro-interactions
 
-1. Phase 1 (auth) — unblocks everything else
-2. Phase 2 (RLS + ownership) — same migration batch as Phase 1
-3. Phase 3 (edge function auth) — immediately after, since Phase 2 will break unauthenticated function calls
-4. Phase 4 (UX/reliability) — iterative
-5. Phase 5 (scan + tests + docs) — final gate before publish
+- Primary button: warm orange → orange-glow gradient, pill radius, soft cinematic shadow, subtle hover lift (`translate-y-[-1px]`)
+- Add a `premium` variant via `cva` to `src/components/ui/button.tsx` (no breaking changes to existing variants)
+- Card hover: gentle border-color shift to `primary/40` + shadow grow
 
-I recommend approving Phases 1–3 first as one implementation pass (the security-critical core), then reviewing before Phases 4–5.
+### G. Memory updates
+
+- Update `mem://style/visual-identity` and `mem://design/typography` with the refined palette HSLs and the Playfair Display italic addition
+- Add new `mem://design/imagery` rule: cinematic mountain/golden-hour photography, dark foregrounds, orange rim light
+
+### Out of scope
+
+- No changes to data model, RLS, edge functions, routing config, or auth flow
+- No changes to LCI, CheckIn, Actions, Scanner, Nudges, Correlations content/logic (they'll inherit token + button changes automatically)
+- No copy rewrites beyond hero eyebrows/taglines on pages explicitly listed in §E
+
+### Validation
+
+After implementation: visit `/`, `/auth`, `/coach`, `/coach-dashboard`, `/access-denied` in the preview, screenshot each, and confirm the cinematic palette + Playfair quote treatment renders correctly on desktop and the 390px mobile breakpoint.
