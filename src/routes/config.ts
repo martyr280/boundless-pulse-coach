@@ -12,6 +12,7 @@ import LCINew from '@/pages/LCINew';
 import Actions from '@/pages/Actions';
 import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
+import Onboarding from '@/pages/Onboarding';
 
 export interface ProtectedRouteConfig {
   path: string;
@@ -29,6 +30,7 @@ export interface ProtectedRouteConfig {
  */
 export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/',            component: Index,          label: 'Pulse' },
+  { path: '/onboarding',  component: Onboarding,     label: 'Onboarding' },
   { path: '/weekly',      component: Weekly,         label: 'Weekly' },
   { path: '/checkin',     component: CheckIn,        label: 'Your Now' },
   { path: '/guide',       component: Guide,          label: 'Guide' },

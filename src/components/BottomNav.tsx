@@ -33,7 +33,7 @@ const BottomNav = () => {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  if (!session || location.pathname === '/auth') return null;
+  if (!session || location.pathname === '/auth' || location.pathname === '/onboarding') return null;
 
   const handleSignOut = async () => {
     setSigningOut(true);
