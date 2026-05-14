@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, AppRole } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { logAccessDenied } from '@/lib/audit';
+import { useProfile } from '@/hooks/useProfile';
 
 interface Props {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ const ProtectedRoute = ({
   const { session, loading, rolesLoading, hasRole, isAdmin, roles } = useAuth();
   const location = useLocation();
   const loggedRef = useRef<string | null>(null);
+  const { data: profile, isLoading: profileLoading } = useProfile();
 
   // 1. Wait for initial auth check.
   if (loading) {
@@ -39,6 +41,20 @@ const ProtectedRoute = ({
   // 2. Not signed in → /auth (preserve target).
   if (!session) {
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+  }
+
+  // 2b. Onboarding gate — block all routes until profile.onboarding_complete is true.
+  if (location.pathname !== '/onboarding') {
+    if (profileLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+    if (profile && !profile.onboarding_complete) {
+      return <Navigate to="/onboarding" replace />;
+    }
   }
 
   // 3. Build effective required roles.
