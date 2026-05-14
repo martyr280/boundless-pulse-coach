@@ -14,6 +14,7 @@ import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
 import Onboarding from '@/pages/Onboarding';
 import Profile from '@/pages/Profile';
+import Partner from '@/pages/Partner';
 
 export interface ProtectedRouteConfig {
   path: string;
@@ -33,6 +34,7 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/',            component: Index,          label: 'Pulse' },
   { path: '/onboarding',  component: Onboarding,     label: 'Onboarding' },
   { path: '/profile',     component: Profile,        label: 'Profile' },
+  { path: '/partner',     component: Partner,        label: 'Partner' },
   { path: '/weekly',      component: Weekly,         label: 'Weekly' },
   { path: '/checkin',     component: CheckIn,        label: 'Your Now' },
   { path: '/guide',       component: Guide,          label: 'Guide' },
