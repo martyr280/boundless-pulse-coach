@@ -50,21 +50,30 @@ export type Database = {
       action_item_updates: {
         Row: {
           action_item_id: string
+          coach_id: string | null
           created_at: string
           id: string
           note: string
+          update_text: string | null
+          update_type: string
         }
         Insert: {
           action_item_id: string
+          coach_id?: string | null
           created_at?: string
           id?: string
           note: string
+          update_text?: string | null
+          update_type?: string
         }
         Update: {
           action_item_id?: string
+          coach_id?: string | null
           created_at?: string
           id?: string
           note?: string
+          update_text?: string | null
+          update_type?: string
         }
         Relationships: [
           {
@@ -290,6 +299,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          user_id: string | null
         }
         Insert: {
           alias?: string
@@ -297,6 +307,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id?: string
+          user_id?: string | null
         }
         Update: {
           alias?: string
@@ -304,6 +315,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
