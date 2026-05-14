@@ -7,9 +7,10 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ArrowLeft, Users, AlertTriangle, TrendingUp, TrendingDown,
-  Info, Loader2, Sparkles, Mountain, RefreshCw,
+  Info, Loader2, Sparkles, Mountain, RefreshCw, SendHorizontal, ListChecks,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
