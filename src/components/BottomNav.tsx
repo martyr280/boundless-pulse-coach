@@ -1,5 +1,6 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Target, ClipboardList, ListChecks, Brain, LogOut } from 'lucide-react';
+import { Target, ClipboardList, ListChecks, Brain, LogOut } from 'lucide-react';
+import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
