@@ -520,11 +520,54 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_task_notes: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          lci_top_task_id: string
+          note_text: string
+          partnership_id: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          lci_top_task_id: string
+          note_text: string
+          partnership_id: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          lci_top_task_id?: string
+          note_text?: string
+          partnership_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_task_notes_lci_top_task_id_fkey"
+            columns: ["lci_top_task_id"]
+            isOneToOne: false
+            referencedRelation: "lci_top_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_task_notes_partnership_id_fkey"
+            columns: ["partnership_id"]
+            isOneToOne: false
+            referencedRelation: "user_partnerships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
           onboarding_complete: boolean
           phone_number: string | null
@@ -535,6 +578,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
           onboarding_complete?: boolean
           phone_number?: string | null
@@ -545,6 +589,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
           onboarding_complete?: boolean
           phone_number?: string | null
@@ -702,6 +747,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vision_text?: string
+        }
+        Relationships: []
+      }
+      user_partnerships: {
+        Row: {
+          created_at: string
+          id: string
+          recipient_id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient_id: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
