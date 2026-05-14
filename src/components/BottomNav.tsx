@@ -21,6 +21,7 @@ const tabs = [
   { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
+  { to: '/partner', icon: Users, label: 'Partner' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
