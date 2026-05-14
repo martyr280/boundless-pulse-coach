@@ -395,6 +395,88 @@ const CoachDashboard = () => {
         </Card>
       )}
 
+      {/* Member Action Items (Push to client) */}
+      {members.length > 0 && (
+        <Card className="border border-border rounded-3xl mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Member Action Items
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Select a member…" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.alias} · {m.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {!selectedMember && (
+              <p className="text-xs text-muted-foreground italic">Pick a member to view their action items.</p>
+            )}
+
+            {selectedMember && !selectedMember.user_id && (
+              <p className="text-xs text-muted-foreground italic">
+                This member isn't linked to a real account yet — no action items to show.
+              </p>
+            )}
+
+            {selectedMember?.user_id && actionItemsLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+              </div>
+            )}
+
+            {selectedMember?.user_id && !actionItemsLoading && memberActionItems.length === 0 && (
+              <p className="text-xs text-muted-foreground italic">No action items yet.</p>
+            )}
+
+            {selectedMember?.user_id && !actionItemsLoading && memberActionItems.length > 0 && (
+              <div className="space-y-2">
+                {memberActionItems.map((item) => {
+                  const done = !!item.completed_at;
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 px-3 py-2 rounded-2xl border border-border bg-card/50"
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                          done ? 'bg-emerald-500' : 'bg-primary'
+                        }`}
+                      />
+                      <p className={`flex-1 text-sm ${done ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+                        {item.title}
+                      </p>
+                      {pushedIds.has(item.id) ? (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 border border-emerald-500/40 rounded px-1.5 py-0.5">
+                          Sent
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => pushToClient(item.id)}
+                          title="Push to client"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <SendHorizontal className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Member Cards */}
       <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-3">
         <Users className="h-4 w-4" />
