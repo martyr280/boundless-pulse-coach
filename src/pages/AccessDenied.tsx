@@ -13,7 +13,7 @@ const AccessDenied = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <Card className="max-w-lg w-full border-2 rounded-3xl">
+      <Card className="max-w-lg w-full border border-border/80 rounded-3xl bg-card/80 backdrop-blur shadow-elevated">
         <CardContent className="p-8 text-center space-y-5">
           <div className="flex justify-center">
             <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -22,8 +22,9 @@ const AccessDenied = () => {
           </div>
 
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-widest mb-2">
-              Access denied
+            <span className="eyebrow">Restricted area</span>
+            <h1 className="h-display text-3xl mt-3 mb-2">
+              Access <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">denied</span>
             </h1>
             <p className="text-sm text-muted-foreground">
               This page is restricted to coach or admin accounts. Your account
@@ -64,12 +65,12 @@ const AccessDenied = () => {
           <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
             <Button
               variant="outline"
-              className="rounded-2xl font-bold"
+              className="rounded-full font-bold uppercase tracking-[0.18em] text-xs"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="h-4 w-4" /> Go back
             </Button>
-            <Button asChild className="rounded-2xl font-bold">
+            <Button asChild variant="premium" className="rounded-full font-bold uppercase tracking-[0.18em] text-xs">
               <Link to="/">
                 <Home className="h-4 w-4" /> Back to dashboard
               </Link>

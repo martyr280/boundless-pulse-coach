@@ -186,12 +186,15 @@ const CoachPage = () => {
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <div className="flex items-center gap-2 mb-1">
+      <div className="mb-1">
+        <span className="eyebrow">The "So That" Coach</span>
+      </div>
+      <div className="flex items-center gap-2 mb-2">
         <Brain className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-extrabold">The "So That" Coach</h1>
+        <h1 className="h-display text-2xl md:text-3xl">Find your <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">root why</span></h1>
       </div>
       <p className="text-muted-foreground text-sm mb-6">
-        AI-powered coaching to find your Root Why through 7 levels of depth.
+        AI-guided coaching through 7 levels of depth.
       </p>
 
       {!started ? (

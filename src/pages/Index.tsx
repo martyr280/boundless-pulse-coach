@@ -1,10 +1,15 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, TrendingUp, Footprints, Star, Mountain } from 'lucide-react';
+import { Activity, TrendingUp, Footprints, Star } from 'lucide-react';
 import { getLatestCheckIn, getEntries } from '@/lib/store';
 import { PILLARS } from '@/lib/types';
+import HeroFrame from '@/components/visual/HeroFrame';
+import CinematicCard from '@/components/visual/CinematicCard';
+import SectionEyebrow from '@/components/visual/SectionEyebrow';
+import MountainMark from '@/components/visual/MountainMark';
+import heroMountains from '@/assets/hero-mountains.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -13,11 +18,7 @@ const Index = () => {
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
 
   const radarData = latestCheckIn
-    ? latestCheckIn.scores.map((s) => ({
-        pillar: s.pillar,
-        score: s.score,
-        fullMark: 10,
-      }))
+    ? latestCheckIn.scores.map((s) => ({ pillar: s.pillar, score: s.score, fullMark: 10 }))
     : PILLARS.map((p) => ({ pillar: p, score: 0, fullMark: 10 }));
 
   const priorityPillars = latestCheckIn
@@ -39,29 +40,50 @@ const Index = () => {
           return sum + habits.filter(Boolean).length / (habits.length || 1);
         }, 0) /
           entries.length) *
-          100
+          100,
       )
     : 0;
 
   return (
     <div className="min-h-screen pb-24 px-4 pt-6 max-w-lg mx-auto">
-      {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <Mountain className="h-8 w-8 text-primary" />
+      {/* Brand bar */}
+      <div className="mb-5 flex items-center gap-3">
+        <MountainMark className="h-9 w-9" />
         <div>
-          <h1 className="text-2xl font-black tracking-widest uppercase text-foreground">
+          <h1 className="text-xl font-black tracking-[0.22em] uppercase text-foreground leading-none">
             Boundless
           </h1>
-          <p className="text-muted-foreground text-xs tracking-wide uppercase">Live a Boundless Life</p>
+          <p className="text-muted-foreground text-[10px] tracking-[0.28em] uppercase mt-1">
+            Live a life that feels like yours
+          </p>
         </div>
       </div>
 
+      {/* Cinematic hero */}
+      <HeroFrame
+        image={heroMountains}
+        eyebrow={<SectionEyebrow>Your Monthly Pulse</SectionEyebrow>}
+        title={<>Pursue a life <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">that feels like yours</span></>}
+        subtitle="Track the seven pillars. Notice the gaps. Take one intentional step."
+        height="md"
+        align="left"
+        className="mb-6"
+      >
+        <Button
+          variant="premium"
+          className="w-fit font-bold rounded-full uppercase tracking-[0.18em] px-6 h-11"
+          onClick={() => navigate('/checkin')}
+        >
+          Monthly Check-in
+        </Button>
+      </HeroFrame>
+
       {/* Pulse Radar */}
-      <Card className="border border-border rounded-3xl mb-6 overflow-hidden">
+      <CinematicCard className="mb-6 -mt-12 relative z-20 mx-2">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+          <CardTitle className="text-xs font-black uppercase tracking-[0.18em] flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Your Pulse
+            Pulse Radar
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -79,7 +101,7 @@ const Index = () => {
                   dataKey="score"
                   stroke="hsl(var(--primary))"
                   fill="hsl(var(--primary))"
-                  fillOpacity={0.2}
+                  fillOpacity={0.25}
                   strokeWidth={2}
                 />
               </RadarChart>
@@ -90,52 +112,40 @@ const Index = () => {
               {priorityPillars.map((p) => (
                 <span
                   key={p}
-                  className="text-xs font-bold px-3 py-1 rounded-full bg-primary/15 text-primary uppercase tracking-wide"
+                  className="text-[10px] font-bold px-3 py-1 rounded-full bg-primary/15 text-primary uppercase tracking-[0.18em]"
                 >
                   ⚡ {p}
                 </span>
               ))}
             </div>
           )}
-          <Button
-            className="w-full mt-4 font-bold rounded-2xl uppercase tracking-wider"
-            onClick={() => navigate('/checkin')}
-          >
-            Monthly Check-in
-          </Button>
         </CardContent>
-      </Card>
+      </CinematicCard>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <Card className="border border-border rounded-3xl text-center">
-          <CardContent className="p-4">
-            <TrendingUp className="h-5 w-5 mx-auto mb-1 text-primary" />
-            <p className="text-2xl font-black">{avgRating}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Avg Rating</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border rounded-3xl text-center">
-          <CardContent className="p-4">
-            <Footprints className="h-5 w-5 mx-auto mb-1 text-primary" />
-            <p className="text-2xl font-black">{avgSteps}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Avg Steps</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border rounded-3xl text-center">
-          <CardContent className="p-4">
-            <Star className="h-5 w-5 mx-auto mb-1 text-primary" />
-            <p className="text-2xl font-black">{habitCompletion}%</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Best Self</p>
-          </CardContent>
-        </Card>
+        {[
+          { Icon: TrendingUp, value: avgRating, label: 'Avg Rating' },
+          { Icon: Footprints, value: avgSteps, label: 'Avg Steps' },
+          { Icon: Star, value: `${habitCompletion}%`, label: 'Best Self' },
+        ].map(({ Icon, value, label }) => (
+          <CinematicCard key={label} className="text-center">
+            <div className="p-4">
+              <Icon className="h-5 w-5 mx-auto mb-1 text-primary" />
+              <p className="text-2xl font-black">{value}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold mt-1">
+                {label}
+              </p>
+            </div>
+          </CinematicCard>
+        ))}
       </div>
 
       {/* Latest Entry */}
       {latestEntry && (
-        <Card className="border border-border rounded-3xl">
+        <CinematicCard>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <CardTitle className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
               Latest Entry · {latestEntry.date}
             </CardTitle>
           </CardHeader>
@@ -166,7 +176,7 @@ const Index = () => {
               </span>
             </div>
           </CardContent>
-        </Card>
+        </CinematicCard>
       )}
     </div>
   );

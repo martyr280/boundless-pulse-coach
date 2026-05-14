@@ -1,5 +1,6 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Target, ClipboardList, ListChecks, Brain, LogOut } from 'lucide-react';
+import { Target, ClipboardList, ListChecks, Brain, LogOut } from 'lucide-react';
+import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const tabs = [
-  { to: '/', icon: Home, label: 'Pulse' },
+  { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
@@ -58,13 +59,20 @@ const BottomNav = () => {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center py-3 text-[10px] font-semibold transition-colors ${
+              `relative flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`
             }
           >
-            <Icon className="h-5 w-5 mb-0.5" />
-            {label}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary shadow-glow" />
+                )}
+                <Icon className="h-5 w-5 mb-0.5" />
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
 
@@ -73,7 +81,7 @@ const BottomNav = () => {
             <button
               type="button"
               aria-label="Sign out"
-              className="flex-1 flex flex-col items-center py-3 text-[10px] font-semibold text-destructive hover:text-destructive/80 transition-colors"
+              className="flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-destructive hover:text-destructive/80 transition-colors"
             >
               <LogOut className="h-5 w-5 mb-0.5" />
               Sign out

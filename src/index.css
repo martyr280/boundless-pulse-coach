@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,27 +6,29 @@
 
 @layer base {
   :root {
-    /* Boundless.me: Dark charcoal + burnt orange */
-    --background: 220 10% 10%;
-    --foreground: 40 10% 95%;
+    /* Boundless.me: Cinematic charcoal + burnt orange */
+    --background: 220 14% 7%;
+    --foreground: 40 12% 96%;
 
-    --card: 220 10% 13%;
-    --card-foreground: 40 10% 95%;
+    --card: 220 12% 11%;
+    --card-foreground: 40 12% 96%;
 
-    --popover: 220 10% 13%;
-    --popover-foreground: 40 10% 95%;
+    --popover: 220 12% 11%;
+    --popover-foreground: 40 12% 96%;
 
-    --primary: 27 88% 48%;
+    --primary: 22 90% 52%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 28 95% 60%;
 
-    --secondary: 220 8% 18%;
-    --secondary-foreground: 40 10% 90%;
+    --secondary: 220 10% 16%;
+    --secondary-foreground: 40 10% 92%;
 
-    --muted: 220 8% 18%;
-    --muted-foreground: 220 8% 55%;
+    --muted: 220 10% 15%;
+    --muted-foreground: 220 8% 60%;
 
-    --accent: 220 8% 18%;
-    --accent-foreground: 40 10% 95%;
+    --accent: 220 10% 16%;
+    --accent-foreground: 40 12% 96%;
+    --accent-warm: 35 85% 55%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -34,20 +36,31 @@
     --warning: 27 88% 48%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 8% 22%;
-    --input: 220 8% 22%;
-    --ring: 27 88% 48%;
+    --border: 220 10% 20%;
+    --input: 220 10% 20%;
+    --ring: 22 90% 52%;
 
-    --radius: 1.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 220 10% 8%;
+    /* Cinematic gradients */
+    --gradient-hero: radial-gradient(ellipse at center, hsl(220 14% 10%) 0%, hsl(220 14% 6%) 60%, hsl(22 60% 14%) 100%);
+    --gradient-overlay: linear-gradient(180deg, hsl(220 14% 7% / 0.2) 0%, hsl(220 14% 7% / 0.85) 70%, hsl(220 14% 7%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(22 90% 52%) 0%, hsl(35 85% 55%) 100%);
+
+    /* Shadows */
+    --shadow-cinematic: 0 30px 80px -20px hsl(22 90% 40% / 0.35), 0 10px 30px -15px hsl(220 14% 0% / 0.6);
+    --shadow-elevated: 0 20px 50px -20px hsl(220 14% 0% / 0.6);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+
+    --sidebar-background: 220 14% 6%;
     --sidebar-foreground: 40 10% 90%;
-    --sidebar-primary: 27 88% 48%;
+    --sidebar-primary: 22 90% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 8% 16%;
+    --sidebar-accent: 220 10% 14%;
     --sidebar-accent-foreground: 40 10% 90%;
-    --sidebar-border: 220 8% 20%;
-    --sidebar-ring: 27 88% 48%;
+    --sidebar-border: 220 10% 18%;
+    --sidebar-ring: 22 90% 52%;
   }
 }
 
@@ -57,7 +70,62 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .h-display {
+    @apply font-black uppercase leading-[0.95];
+    letter-spacing: 0.04em;
+    text-wrap: balance;
+  }
+
+  .h-quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase text-primary;
+    letter-spacing: 0.22em;
+  }
+
+  .tracking-display {
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .bg-gradient-warm {
+    background: var(--gradient-warm);
+  }
+  .bg-gradient-overlay {
+    background: var(--gradient-overlay);
+  }
+  .shadow-cinematic {
+    box-shadow: var(--shadow-cinematic);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .font-serif-italic {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
   }
 }
