@@ -4,10 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, ClipboardList, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, ClipboardList, Sparkles, Loader2, AlertTriangle, Activity, ChevronDown, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useCreateCheckin, useLatestCheckin } from '@/hooks/useCheckins';
+import { PILLARS, type Pillar, type PillarScore } from '@/lib/types';
 
 type Status = 'red' | 'yellow' | 'green';
 interface PriorTask {
