@@ -1,11 +1,15 @@
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import {
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, TrendingUp, Footprints, Star, Sparkles, Settings } from 'lucide-react';
-import { useLatestCheckin } from '@/hooks/useCheckins';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Activity, TrendingUp, Footprints, Star, Sparkles, Settings, LineChart as LineChartIcon } from 'lucide-react';
+import { useCheckins, useLatestCheckin } from '@/hooks/useCheckins';
 import { useJournalEntries } from '@/hooks/useJournalEntries';
-import { PILLARS } from '@/lib/types';
+import { PILLARS, type Pillar } from '@/lib/types';
 import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
