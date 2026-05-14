@@ -24,12 +24,21 @@ const PILLAR_LABELS: Record<string, string> = {
 
 interface MemberData {
   id: string;
+  user_id: string | null;
   alias: string;
   display_name: string;
   avgScores: Record<string, number>;
   trend: Record<string, number>;
   avgRating: number;
   avgSteps: number;
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  due_date: string | null;
+  completed_at: string | null;
+  created_at: string;
 }
 
 interface Insight {
