@@ -2,7 +2,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { useNavigate } from 'react-router-dom';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, TrendingUp, Footprints, Star, Sparkles } from 'lucide-react';
+import { Activity, TrendingUp, Footprints, Star, Sparkles, Settings } from 'lucide-react';
 import { useLatestCheckin } from '@/hooks/useCheckins';
 import { useJournalEntries } from '@/hooks/useJournalEntries';
 import { PILLARS } from '@/lib/types';
@@ -50,7 +50,7 @@ const Index = () => {
       {/* Brand bar */}
       <div className="mb-5 flex items-center gap-3">
         <MountainMark className="h-9 w-9" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-black tracking-[0.22em] uppercase text-foreground leading-none">
             Boundless
           </h1>
@@ -58,6 +58,13 @@ const Index = () => {
             Live a life that feels like yours
           </p>
         </div>
+        <button
+          onClick={() => navigate('/profile')}
+          aria-label="Open profile and settings"
+          className="h-10 w-10 rounded-full border border-border/60 bg-card/60 hover:border-primary/50 hover:text-primary text-muted-foreground transition-colors flex items-center justify-center"
+        >
+          <Settings className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Cinematic hero */}
