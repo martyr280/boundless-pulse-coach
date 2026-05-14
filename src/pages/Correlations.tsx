@@ -4,14 +4,16 @@ import {
   ScatterChart, Scatter, ZAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getEntries, getLatestCheckIn } from '@/lib/store';
+import { useJournalEntries } from '@/hooks/useJournalEntries';
+import { useLatestCheckin } from '@/hooks/useCheckins';
 import { DEFAULT_HABITS } from '@/lib/types';
-import { ArrowLeft, BarChart3, Lightbulb } from 'lucide-react';
+import { ArrowLeft, BarChart3, Lightbulb, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CorrelationsPage = () => {
   const navigate = useNavigate();
-  const entries = getEntries();
-  const latestCheckIn = getLatestCheckIn();
+  const { data: entries = [] } = useJournalEntries();
+  const { data: latestCheckIn } = useLatestCheckin();
 
   // Graph A: Daily Rating + Step Count
   const graphAData = entries.map((e) => ({
