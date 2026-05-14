@@ -580,6 +580,142 @@ export type Database = {
         }
         Relationships: []
       }
+      user_checkins: {
+        Row: {
+          checked_in_at: string
+          created_at: string
+          id: string
+          overall_score: number | null
+          user_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          overall_score?: number | null
+          user_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          created_at?: string
+          id?: string
+          overall_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_journal_entries: {
+        Row: {
+          created_at: string
+          daily_rating: number
+          entry_date: string
+          gratitude_1: string | null
+          gratitude_2: string | null
+          gratitude_3: string | null
+          id: string
+          step_count: number
+          top_priority: string | null
+          top_priority_done: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rating?: number
+          entry_date?: string
+          gratitude_1?: string | null
+          gratitude_2?: string | null
+          gratitude_3?: string | null
+          id?: string
+          step_count?: number
+          top_priority?: string | null
+          top_priority_done?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_rating?: number
+          entry_date?: string
+          gratitude_1?: string | null
+          gratitude_2?: string | null
+          gratitude_3?: string | null
+          id?: string
+          step_count?: number
+          top_priority?: string | null
+          top_priority_done?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_journal_habits: {
+        Row: {
+          completed: boolean
+          created_at: string
+          habit_name: string
+          id: string
+          journal_entry_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          habit_name: string
+          id?: string
+          journal_entry_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          habit_name?: string
+          id?: string
+          journal_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_journal_habits_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "user_journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_pillar_scores: {
+        Row: {
+          checkin_id: string
+          created_at: string
+          how_it_feels: string | null
+          id: string
+          pillar: string
+          score: number
+          whats_happening: string | null
+        }
+        Insert: {
+          checkin_id: string
+          created_at?: string
+          how_it_feels?: string | null
+          id?: string
+          pillar: string
+          score: number
+          whats_happening?: string | null
+        }
+        Update: {
+          checkin_id?: string
+          created_at?: string
+          how_it_feels?: string | null
+          id?: string
+          pillar?: string
+          score?: number
+          whats_happening?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pillar_scores_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: false
+            referencedRelation: "user_checkins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -597,6 +733,33 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_truth_statements: {
+        Row: {
+          created_at: string
+          id: string
+          levels: Json
+          priority: string
+          statement: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          levels?: Json
+          priority: string
+          statement: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          levels?: Json
+          priority?: string
+          statement?: string
           user_id?: string
         }
         Relationships: []
