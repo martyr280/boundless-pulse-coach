@@ -16,11 +16,33 @@ import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import MountainMark from '@/components/visual/MountainMark';
 import heroMountains from '@/assets/hero-mountains.jpg';
 
+const PILLAR_COLORS: Record<Pillar, string> = {
+  Family: 'hsl(var(--primary))',
+  Finance: '#6366f1',
+  Faith: '#10b981',
+  Fitness: '#f59e0b',
+  Friends: '#f43f5e',
+  Fun: '#8b5cf6',
+  Field: '#0ea5e9',
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { data: latestCheckIn } = useLatestCheckin();
+  const { data: allCheckIns = [] } = useCheckins();
   const { data: entries = [] } = useJournalEntries();
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+
+  // Build chronological history rows: one per check-in with all 7 pillar scores
+  const historyData = [...allCheckIns]
+    .reverse()
+    .map((c) => {
+      const d = new Date(c.date);
+      const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const row: Record<string, number | string> = { date: label };
+      for (const s of c.scores) row[s.pillar] = s.score;
+      return row;
+    });
 
   const radarData = latestCheckIn
     ? latestCheckIn.scores.map((s) => ({ pillar: s.pillar, score: s.score, fullMark: 10 }))
