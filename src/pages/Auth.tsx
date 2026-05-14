@@ -129,63 +129,108 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="flex items-center gap-3 justify-center mb-6">
-          <Mountain className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-black uppercase tracking-widest">Boundless</h1>
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* Left: cinematic panel */}
+      <aside className="relative hidden lg:flex overflow-hidden">
+        <img
+          src={heroSummit}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/60 to-background" />
+        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+          <div className="flex items-center gap-3">
+            <MountainMark className="h-10 w-10" />
+            <span className="text-xl font-black uppercase tracking-[0.22em]">Boundless</span>
+          </div>
+          <div className="space-y-6 max-w-md">
+            <SectionEyebrow>It's time to pursue</SectionEyebrow>
+            <h2 className="h-display text-4xl xl:text-5xl text-foreground">
+              A life that feels<br />
+              <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">
+                like yours
+              </span>
+            </h2>
+            <PullQuote
+              quote="Invest in you. It may be the best investment that you ever make."
+              attribution="Jessica Sullivan"
+            />
+          </div>
+          <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+            Live a Boundless Life
+          </p>
         </div>
+      </aside>
 
-        <Card className="border-2 rounded-3xl">
-          <CardHeader>
-            <CardTitle className="text-center text-lg font-extrabold">Welcome</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="mb-4">
-              <TabsList className="grid grid-cols-2 w-full rounded-2xl">
-                <TabsTrigger value="signin" className="rounded-2xl">Sign in</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-2xl">Sign up</TabsTrigger>
-              </TabsList>
-              <TabsContent value="signin" />
-              <TabsContent value="signup" />
-            </Tabs>
+      {/* Right: form */}
+      <div className="flex items-center justify-center px-4 py-10 lg:py-0">
+        <div className="w-full max-w-md">
+          <div className="flex items-center gap-3 justify-center mb-8 lg:hidden">
+            <MountainMark className="h-9 w-9" />
+            <h1 className="text-xl font-black uppercase tracking-[0.22em]">Boundless</h1>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {mode === 'signup' && (
+          <div className="mb-6">
+            <SectionEyebrow>{mode === 'signup' ? 'Begin the journey' : 'Welcome back'}</SectionEyebrow>
+            <h2 className="h-display text-3xl mt-3">
+              {mode === 'signup' ? 'Create your account' : 'Sign in to continue'}
+            </h2>
+          </div>
+
+          <Card className="border-border/80 rounded-3xl bg-card/60 backdrop-blur shadow-elevated">
+            <CardContent className="pt-6">
+              <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="mb-4">
+                <TabsList className="grid grid-cols-2 w-full rounded-full">
+                  <TabsTrigger value="signin" className="rounded-full">Sign in</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-full">Sign up</TabsTrigger>
+                </TabsList>
+                <TabsContent value="signin" />
+                <TabsContent value="signup" />
+              </Tabs>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
+                {mode === 'signup' && (
+                  <div>
+                    <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-[0.18em]">Name</Label>
+                    <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+                      className="rounded-xl mt-1" placeholder="Your name" />
+                  </div>
+                )}
                 <div>
-                  <Label htmlFor="name" className="text-xs font-bold">Name</Label>
-                  <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-                    className="rounded-2xl" placeholder="Your name" />
+                  <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-[0.18em]">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    className="rounded-xl mt-1" required />
                 </div>
-              )}
-              <div>
-                <Label htmlFor="email" className="text-xs font-bold">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-2xl" required />
-              </div>
-              <div>
-                <Label htmlFor="password" className="text-xs font-bold">Password</Label>
-                <Input id="password" type="password" value={password}
-                  onChange={(e) => setPassword(e.target.value)} className="rounded-2xl" required minLength={8} />
-              </div>
-              <Button type="submit" className="w-full font-bold rounded-2xl h-11" disabled={submitting}>
-                {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {mode === 'signup' ? 'Create account' : 'Sign in'}
-              </Button>
-            </form>
+                <div>
+                  <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                  <Input id="password" type="password" value={password}
+                    onChange={(e) => setPassword(e.target.value)} className="rounded-xl mt-1" required minLength={8} />
+                </div>
+                <Button
+                  type="submit"
+                  variant="premium"
+                  className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                  disabled={submitting}
+                >
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {mode === 'signup' ? 'Create account' : 'Sign in'}
+                </Button>
+              </form>
 
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-[0.22em]">
+                  <span className="bg-card px-3 text-muted-foreground">or</span>
+                </div>
               </div>
-            </div>
-            <Button variant="outline" type="button" className="w-full font-bold rounded-2xl h-11"
-              onClick={handleGoogle} disabled={submitting}>
-              Continue with Google
-            </Button>
-          </CardContent>
-        </Card>
+              <Button variant="outline" type="button" className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                onClick={handleGoogle} disabled={submitting}>
+                Continue with Google
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
