@@ -62,7 +62,7 @@ const CoachDashboard = () => {
     // Load members
     const { data: membersData } = await supabase
       .from('cohort_members')
-      .select('id, display_name, alias')
+      .select('id, display_name, alias, user_id')
       .eq('coach_id', cId);
 
     if (!membersData || membersData.length === 0) {
