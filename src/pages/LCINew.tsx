@@ -4,10 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, ClipboardList, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, ClipboardList, Sparkles, Loader2, AlertTriangle, Activity, ChevronDown, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useCreateCheckin, useLatestCheckin } from '@/hooks/useCheckins';
+import { PILLARS, type Pillar, type PillarScore } from '@/lib/types';
 
 type Status = 'red' | 'yellow' | 'green';
 interface PriorTask {
@@ -33,6 +37,42 @@ const LCINewPage = () => {
   const [priorTasks, setPriorTasks] = useState<PriorTask[]>([]);
   const [loadingPrior, setLoadingPrior] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Quick Pulse re-assessment (Enhancement 3)
+  const { data: latestCheckin } = useLatestCheckin();
+  const createCheckin = useCreateCheckin();
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [pulseSaved, setPulseSaved] = useState(false);
+  const [pulseScores, setPulseScores] = useState<Record<Pillar, number>>(
+    () => Object.fromEntries(PILLARS.map((p) => [p, 5])) as Record<Pillar, number>,
+  );
+
+  useEffect(() => {
+    if (latestCheckin?.scores?.length) {
+      setPulseScores((prev) => {
+        const next = { ...prev };
+        for (const s of latestCheckin.scores) next[s.pillar] = s.score;
+        return next;
+      });
+    }
+  }, [latestCheckin]);
+
+  const handleSavePulse = async () => {
+    const payload: PillarScore[] = PILLARS.map((p) => ({
+      pillar: p,
+      score: pulseScores[p],
+      whats_happening: '',
+      how_it_feels: '',
+    }));
+    try {
+      await createCheckin.mutateAsync(payload);
+      setPulseSaved(true);
+      setPulseOpen(false);
+      toast.success('Pulse updated.');
+    } catch {
+      toast.error('Failed to save pulse');
+    }
+  };
 
   // Load prior session's top tasks for review
   useEffect(() => {
@@ -198,6 +238,59 @@ const LCINewPage = () => {
       <p className="text-muted-foreground text-sm mb-6">
         Catch up, align, connect, and decide the top tasks for the next period.
       </p>
+
+      {/* Quick Pulse re-assessment */}
+      <Collapsible open={pulseOpen} onOpenChange={setPulseOpen} className="mb-4">
+        <Card className="border-2 rounded-3xl overflow-hidden">
+          <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-card/60 transition-colors">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold">Your Now — Quick Pulse</span>
+              {pulseSaved && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                  <Check className="h-3 w-3" /> Updated
+                </span>
+              )}
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${pulseOpen ? 'rotate-180' : ''}`}
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-3 pt-0">
+              <p className="text-[11px] text-muted-foreground">
+                Re-rate your seven F's right now. Saves a fresh check-in.
+              </p>
+              {PILLARS.map((p) => (
+                <div key={p}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wide">{p}</span>
+                    <span className="text-sm font-black text-primary tabular-nums">{pulseScores[p]}</span>
+                  </div>
+                  <Slider
+                    min={1}
+                    max={10}
+                    step={1}
+                    value={[pulseScores[p]]}
+                    onValueChange={([v]) => setPulseScores((prev) => ({ ...prev, [p]: v }))}
+                  />
+                </div>
+              ))}
+              <Button
+                onClick={handleSavePulse}
+                disabled={createCheckin.isPending}
+                className="w-full rounded-2xl font-bold mt-2"
+              >
+                {createCheckin.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</>
+                ) : (
+                  'Save Pulse'
+                )}
+              </Button>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Next LCI date */}
       <Card className="border-2 rounded-3xl mb-4">
