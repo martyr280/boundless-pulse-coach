@@ -26,7 +26,6 @@ export interface PartnerProfile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
-  email: string | null;
 }
 
 export interface PartnerTopTask {
@@ -141,7 +140,7 @@ export function usePartnerProfile(partnerId: string | null) {
     queryFn: async (): Promise<PartnerProfile | null> => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, email')
+        .select('id, display_name, avatar_url')
         .eq('id', partnerId!)
         .maybeSingle();
       if (error) throw error;

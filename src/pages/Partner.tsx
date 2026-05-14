@@ -144,14 +144,13 @@ function IncomingRequestRow({
       <Avatar className="h-10 w-10">
         {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="" />}
         <AvatarFallback className="bg-card text-xs font-bold">
-          {initials(profile?.display_name, profile?.email)}
+          {initials(profile?.display_name, null)}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-foreground truncate">
-          {profile?.display_name || profile?.email || 'Unknown user'}
+          {profile?.display_name || 'Unknown user'}
         </p>
-        <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
       </div>
       <Button size="sm" variant="ghost" onClick={() => onRespond('declined')}>
         <X className="h-4 w-4" />
@@ -175,12 +174,12 @@ function PendingSent({ partnership }: { partnership: Partnership }) {
         <Avatar className="h-12 w-12">
           {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="" />}
           <AvatarFallback className="bg-card font-bold">
-            {initials(profile?.display_name, profile?.email)}
+            {initials(profile?.display_name, null)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground truncate">
-            {profile?.display_name || profile?.email || 'Pending partner'}
+            {profile?.display_name || 'Pending partner'}
           </p>
           <p className="text-xs text-muted-foreground">Awaiting their response.</p>
         </div>
@@ -355,14 +354,14 @@ function ConnectionSection({
         <Avatar className="h-14 w-14">
           {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="" />}
           <AvatarFallback className="bg-card font-bold">
-            {initials(profile?.display_name, profile?.email)}
+            {initials(profile?.display_name, null)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-base font-bold text-foreground truncate">
-            {profile?.display_name || profile?.email || 'Your partner'}
+            {profile?.display_name || 'Your partner'}
           </p>
-          <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+          
         </div>
         <Button
           variant="outline"

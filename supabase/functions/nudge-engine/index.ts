@@ -50,7 +50,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const mode = body?.mode || "scheduled";
-    const fromNumber = body?.from_number;
+    
 
     // Modes that require auth
     const userModes = new Set(["save_prefs", "test"]);
@@ -132,7 +132,7 @@ serve(async (req) => {
         },
         body: new URLSearchParams({
           To: `whatsapp:${pref.phone_number}`,
-          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          From: "whatsapp:+14155238886",
           Body: personalized,
         }),
       });
@@ -177,7 +177,7 @@ serve(async (req) => {
         },
         body: new URLSearchParams({
           To: `whatsapp:${sch.phone_number}`,
-          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          From: "whatsapp:+14155238886",
           Body: personalized,
         }),
       });
@@ -212,7 +212,7 @@ serve(async (req) => {
         },
         body: new URLSearchParams({
           To: `whatsapp:${pref.phone_number}`,
-          From: fromNumber ? `whatsapp:${fromNumber}` : "whatsapp:+14155238886",
+          From: "whatsapp:+14155238886",
           Body: personalized,
         }),
       });

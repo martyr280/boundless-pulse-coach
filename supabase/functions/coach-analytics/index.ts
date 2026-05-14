@@ -10,15 +10,19 @@ const corsHeaders = {
 async function authUser(req: Request) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return { error: "Unauthorized" as const };
+  const token = authHeader.replace("Bearer ", "");
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  const { data, error } = await adminClient.auth.getUser(token);
+  if (error || !data?.user) return { error: "Unauthorized" as const };
   const userClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
-  const token = authHeader.replace("Bearer ", "");
-  const { data, error } = await userClient.auth.getClaims(token);
-  if (error || !data?.claims) return { error: "Unauthorized" as const };
-  return { userId: data.claims.sub as string, userClient };
+  return { userId: data.user.id, userClient };
 }
 
 serve(async (req) => {
