@@ -7,9 +7,10 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   ArrowLeft, Users, AlertTriangle, TrendingUp, TrendingDown,
-  Info, Loader2, Sparkles, Mountain, RefreshCw,
+  Info, Loader2, Sparkles, Mountain, RefreshCw, SendHorizontal, ListChecks,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,12 +24,21 @@ const PILLAR_LABELS: Record<string, string> = {
 
 interface MemberData {
   id: string;
+  user_id: string | null;
   alias: string;
   display_name: string;
   avgScores: Record<string, number>;
   trend: Record<string, number>;
   avgRating: number;
   avgSteps: number;
+}
+
+interface ActionItem {
+  id: string;
+  title: string;
+  due_date: string | null;
+  completed_at: string | null;
+  created_at: string;
 }
 
 interface Insight {
@@ -48,11 +58,67 @@ const CoachDashboard = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [coachName, setCoachName] = useState('');
 
+  // Push-to-client state
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+  const [memberActionItems, setMemberActionItems] = useState<ActionItem[]>([]);
+  const [actionItemsLoading, setActionItemsLoading] = useState(false);
+  const [pushedIds, setPushedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAuthUserId(data.user?.id ?? null));
+  }, []);
+
+  const selectedMember = members.find((m) => m.id === selectedMemberId) ?? null;
+
+  useEffect(() => {
+    if (!selectedMember?.user_id) {
+      setMemberActionItems([]);
+      return;
+    }
+    setActionItemsLoading(true);
+    supabase
+      .from('action_items')
+      .select('id, title, due_date, completed_at, created_at')
+      .eq('user_id', selectedMember.user_id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error('Failed to load action items');
+          setMemberActionItems([]);
+        } else {
+          setMemberActionItems((data ?? []) as ActionItem[]);
+        }
+        setActionItemsLoading(false);
+      });
+  }, [selectedMember?.user_id]);
+
+  const pushToClient = async (actionItemId: string) => {
+    if (!authUserId) {
+      toast.error('Not signed in');
+      return;
+    }
+    const { error } = await supabase.from('action_item_updates').insert({
+      action_item_id: actionItemId,
+      coach_id: authUserId,
+      update_type: 'pushed',
+      update_text: 'Pushed to client',
+      note: 'Pushed to client',
+    });
+    if (error) {
+      toast.error('Failed to push');
+      return;
+    }
+    setPushedIds((s) => new Set(s).add(actionItemId));
+    toast.success('Sent to client');
+  };
+
   const loadData = useCallback(async (cId: string) => {
     // Load members
     const { data: membersData } = await supabase
       .from('cohort_members')
-      .select('id, display_name, alias')
+      .select('id, display_name, alias, user_id')
       .eq('coach_id', cId);
 
     if (!membersData || membersData.length === 0) {
@@ -91,6 +157,7 @@ const CoachDashboard = () => {
 
       return {
         id: m.id,
+        user_id: (m as any).user_id ?? null,
         alias: m.alias,
         display_name: m.display_name,
         avgScores,
@@ -324,6 +391,88 @@ const CoachDashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Member Action Items (Push to client) */}
+      {members.length > 0 && (
+        <Card className="border border-border rounded-3xl mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Member Action Items
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Select a member…" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.alias} · {m.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {!selectedMember && (
+              <p className="text-xs text-muted-foreground italic">Pick a member to view their action items.</p>
+            )}
+
+            {selectedMember && !selectedMember.user_id && (
+              <p className="text-xs text-muted-foreground italic">
+                This member isn't linked to a real account yet — no action items to show.
+              </p>
+            )}
+
+            {selectedMember?.user_id && actionItemsLoading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+              </div>
+            )}
+
+            {selectedMember?.user_id && !actionItemsLoading && memberActionItems.length === 0 && (
+              <p className="text-xs text-muted-foreground italic">No action items yet.</p>
+            )}
+
+            {selectedMember?.user_id && !actionItemsLoading && memberActionItems.length > 0 && (
+              <div className="space-y-2">
+                {memberActionItems.map((item) => {
+                  const done = !!item.completed_at;
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 px-3 py-2 rounded-2xl border border-border bg-card/50"
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                          done ? 'bg-emerald-500' : 'bg-primary'
+                        }`}
+                      />
+                      <p className={`flex-1 text-sm ${done ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+                        {item.title}
+                      </p>
+                      {pushedIds.has(item.id) ? (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 border border-emerald-500/40 rounded px-1.5 py-0.5">
+                          Sent
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => pushToClient(item.id)}
+                          title="Push to client"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <SendHorizontal className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
