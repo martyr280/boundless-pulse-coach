@@ -69,11 +69,12 @@ export default function LCIGuided() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function turn(user_message?: string, start = false) {
+  async function turn(user_message?: string, start = false, explicitRunId?: string) {
     setBusy(true);
     try {
+      const activeRunId = explicitRunId ?? runId;
       const { data, error } = await supabase.functions.invoke('lci-guided-session', {
-        body: { run_id: runId, user_message, start },
+        body: { run_id: activeRunId, user_message, start },
       });
       if (error) throw new Error((data as any)?.error || error.message);
       setRunId(data.run_id);
@@ -85,6 +86,10 @@ export default function LCIGuided() {
         if (data.assistant) next.push({ role: 'assistant', content: data.assistant });
         return next;
       });
+      // Persist run id in URL so refresh / return resumes the conversation.
+      if (data.run_id && data.run_id !== id) {
+        navigate(`/lci/guided/${data.run_id}`, { replace: true });
+      }
       if (data.status === 'complete' && data.materialized_session_id) {
         toast.success('Guided LCI complete — saved to your LCI history.');
         setTimeout(() => navigate(`/lci/${data.materialized_session_id}`), 1200);
