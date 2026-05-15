@@ -44,7 +44,9 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/correlations',component: Correlations,   label: 'Correlations' },
   { path: '/nudges',      component: Nudges,         label: 'Nudges' },
   { path: '/lci',         component: LCI,            label: 'LCI' },
-  { path: '/lci/new',     component: LCINew,         label: 'New LCI' },
+  { path: '/lci/new',         component: LCINew,         label: 'New LCI' },
+  { path: '/lci/guided',      component: LCIGuided,      label: 'Guided LCI' },
+  { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided LCI' },
   { path: '/actions',     component: Actions,        label: 'Actions' },
 
   // Coach / admin only
