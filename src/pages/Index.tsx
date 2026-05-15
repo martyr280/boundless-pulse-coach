@@ -16,6 +16,7 @@ import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import MountainMark from '@/components/visual/MountainMark';
 import heroMountains from '@/assets/hero-mountains.jpg';
 import CycleProgress from '@/components/CycleProgress';
+import EveningReflection from '@/components/EveningReflection';
 
 const PILLAR_COLORS: Record<Pillar, string> = {
   Family: 'hsl(var(--primary))',
