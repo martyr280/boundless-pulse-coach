@@ -156,6 +156,15 @@ serve(async (req) => {
       });
     }
 
+    // Global kill-switch — admins can toggle nudges off without touching cron
+    const { data: setting } = await serviceClient
+      .from("app_settings").select("value").eq("key", "nudges_enabled").maybeSingle();
+    if (setting?.value !== true) {
+      return new Response(JSON.stringify({ success: true, skipped: "nudges disabled by admin" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: prefs } = await serviceClient
       .from("nudge_preferences").select("*").eq("nudge_enabled", true);
 

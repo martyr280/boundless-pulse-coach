@@ -11,6 +11,7 @@ import {
   Activity, ListChecks, BookHeart, HeartHandshake, MessageSquare, Bell,
   ArrowRight, GraduationCap,
 } from 'lucide-react';
+import NudgesToggle from '@/components/admin/NudgesToggle';
 
 interface Stats {
   users: {
@@ -108,6 +109,14 @@ export default function AdminDashboard() {
                 desc="WhatsApp nudge cadence and predictive accountability triggers." />
               <ToolCard to="/correlations" icon={Activity} title="Correlations explorer"
                 desc="Cross-pillar trends across the whole community." />
+            </div>
+          </section>
+
+          {/* Controls */}
+          <section className="space-y-4">
+            <h2 className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Controls</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <NudgesToggle />
             </div>
           </section>
 
