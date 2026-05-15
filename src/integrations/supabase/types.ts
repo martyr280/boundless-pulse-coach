@@ -817,6 +817,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_best_self_habits: {
+        Row: {
+          created_at: string
+          habit_text: string
+          id: string
+          is_active: boolean
+          kind: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          habit_text: string
+          id?: string
+          is_active?: boolean
+          kind?: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          habit_text?: string
+          id?: string
+          is_active?: boolean
+          kind?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_checkins: {
         Row: {
           checked_in_at: string
@@ -869,6 +902,33 @@ export type Database = {
           started_on?: string
           status?: string
           target_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_general_ideas: {
+        Row: {
+          created_at: string
+          id: string
+          idea_text: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_text: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_text?: string
+          position?: number
           updated_at?: string
           user_id?: string
         }
@@ -980,6 +1040,60 @@ export type Database = {
           vision_text?: string
         }
         Relationships: []
+      }
+      user_month_actions: {
+        Row: {
+          action_item_id: string | null
+          action_text: string
+          completed_at: string | null
+          created_at: string
+          cycle_id: string | null
+          due_date: string | null
+          id: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_item_id?: string | null
+          action_text: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_id?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_item_id?: string | null
+          action_text?: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_id?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_month_actions_action_item_id_fkey"
+            columns: ["action_item_id"]
+            isOneToOne: false
+            referencedRelation: "action_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_month_actions_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "user_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_partnerships: {
         Row: {
@@ -1197,6 +1311,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          kind: string
           position: number
           priority_text: string
           updated_at: string
@@ -1207,6 +1322,7 @@ export type Database = {
           category: string
           created_at?: string
           id?: string
+          kind?: string
           position?: number
           priority_text: string
           updated_at?: string
@@ -1217,6 +1333,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          kind?: string
           position?: number
           priority_text?: string
           updated_at?: string
@@ -1224,6 +1341,83 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      workshop_sessions: {
+        Row: {
+          cohort_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          future_self_age: number | null
+          future_self_date: string | null
+          id: string
+          important_people: Json
+          mantra: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cohort_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          future_self_age?: number | null
+          future_self_date?: string | null
+          id?: string
+          important_people?: Json
+          mantra?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cohort_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          future_self_age?: number | null
+          future_self_date?: string | null
+          id?: string
+          important_people?: Json
+          mantra?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workshop_step_completions: {
+        Row: {
+          completed_at: string
+          id: string
+          step: number
+          user_id: string
+          workshop_session_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          step: number
+          user_id: string
+          workshop_session_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          step?: number
+          user_id?: string
+          workshop_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_step_completions_workshop_session_id_fkey"
+            columns: ["workshop_session_id"]
+            isOneToOne: false
+            referencedRelation: "workshop_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
