@@ -67,19 +67,20 @@ export function useStartCycle() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (targetDays = 30) => {
+    mutationFn: async (targetDays?: number) => {
       if (!user) throw new Error('Not signed in');
+      const days = targetDays ?? 30;
       // Close any prior active cycle (defensive — partial unique index also enforces this)
       await supabase
         .from('user_cycles')
-        .update({ status: 'abandoned', ended_on: new Date().toISOString().split('T')[0] })
+        .update({ status: 'abandoned', ended_on: new Date().toISOString().split('T')[0] } as any)
         .eq('user_id', user.id)
         .eq('status', 'active');
       const { error } = await supabase.from('user_cycles').insert({
         user_id: user.id,
-        target_days: targetDays,
+        target_days: days,
         status: 'active',
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['current_cycle'] }),
