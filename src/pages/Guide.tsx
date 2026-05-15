@@ -18,10 +18,14 @@ import {
   useUpdateYearPriority,
   useDeleteYearPriority,
   useWhyStatements,
+  usePillarStates,
+  useUpsertPillarState,
   YEAR_CATEGORIES,
   type YearCategory,
   type YearPriority,
+  type PillarState,
 } from '@/hooks/useGuide';
+import { PILLARS, PILLAR_SUBTOPICS, type Pillar } from '@/lib/types';
 
 const CATEGORY_DESCRIPTIONS: Record<YearCategory, string> = {
   Being: 'Who you are becoming',
