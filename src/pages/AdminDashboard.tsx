@@ -112,6 +112,14 @@ export default function AdminDashboard() {
             </div>
           </section>
 
+          {/* Controls */}
+          <section className="space-y-4">
+            <h2 className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Controls</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <NudgesToggle />
+            </div>
+          </section>
+
           {/* Recent signups */}
           <section className="space-y-4">
             <div className="flex items-end justify-between">
