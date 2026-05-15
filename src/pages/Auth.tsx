@@ -396,13 +396,11 @@ const AuthPage = () => {
                     onClick={handleGoogle} disabled={submitting}>
                     Continue with Google
                   </Button>
-                  {mode === 'signin' && (
-                    <Button variant="ghost" type="button"
-                      className="w-full mt-2 font-bold rounded-full h-11 uppercase tracking-[0.18em]"
-                      onClick={handleMagicLink} disabled={submitting}>
-                      Email me a magic link
-                    </Button>
-                  )}
+                  <Button variant="ghost" type="button"
+                    className="w-full mt-2 font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                    onClick={handleMagicLink} disabled={submitting}>
+                    {mode === 'signup' ? 'Email me a sign-up link' : 'Email me a magic link'}
+                  </Button>
                 </>
               )}
             </CardContent>
