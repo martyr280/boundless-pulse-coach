@@ -309,9 +309,26 @@ const AuthPage = () => {
                         className="rounded-xl mt-1" required />
                     </div>
                     <div>
-                      <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                      <div className="flex items-baseline justify-between">
+                        <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                        {mode === 'signin' && (
+                          <button
+                            type="button"
+                            onClick={handleForgotPassword}
+                            disabled={submitting}
+                            className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary hover:underline disabled:opacity-50"
+                          >
+                            Forgot?
+                          </button>
+                        )}
+                      </div>
                       <Input id="password" type="password" value={password}
                         onChange={(e) => setPassword(e.target.value)} className="rounded-xl mt-1" required minLength={8} />
+                      {forgotOpen && mode === 'signin' && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          We sent a password reset link to <span className="text-foreground">{email}</span>. Check your inbox.
+                        </p>
+                      )}
                     </div>
                     <Button
                       type="submit"
