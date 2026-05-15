@@ -1,5 +1,14 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Target, ClipboardList, ListChecks, Brain, LogOut, CalendarDays, BookOpen, Users } from 'lucide-react';
+import {
+  Target,
+  ClipboardList,
+  ListChecks,
+  Brain,
+  LogOut,
+  CalendarDays,
+  BookOpen,
+  Users,
+} from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -19,7 +28,7 @@ import {
 const tabs = [
   { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
-  { to: '/checkin', icon: Target, label: 'Now' },
+  { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
   { to: '/partner', icon: Users, label: 'Partner' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
@@ -27,14 +36,15 @@ const tabs = [
   { to: '/coach', icon: Brain, label: 'Coach' },
 ];
 
-const BottomNav = () => {
+const DesktopNav = () => {
   const { session, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  if (!session || location.pathname === '/auth' || location.pathname === '/onboarding') return null;
+  if (!session || location.pathname === '/auth' || location.pathname === '/onboarding')
+    return null;
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -51,43 +61,63 @@ const BottomNav = () => {
   };
 
   return (
-    <nav
+    <aside
       aria-label="Primary"
-      className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border z-50 pb-[env(safe-area-inset-bottom)]"
+      className="hidden md:flex fixed inset-y-0 left-0 w-60 flex-col bg-card/95 backdrop-blur-md border-r border-border z-40"
     >
-      <div className="max-w-lg mx-auto flex">
+      {/* Brand */}
+      <div className="px-6 py-6 border-b border-border/60">
+        <div className="flex items-center gap-3">
+          <MountainMark className="h-7 w-7 text-primary" />
+          <div className="leading-tight">
+            <div className="h-display text-lg text-foreground">Boundless</div>
+            <div className="eyebrow text-[10px] text-muted-foreground">Live by Design</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {tabs.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `relative flex-1 flex flex-col items-center justify-start py-3 px-1 text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
               }`
             }
           >
             {({ isActive }) => (
               <>
+                <Icon
+                  className={`h-5 w-5 shrink-0 ${
+                    isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                  }`}
+                />
+                <span className="tracking-wide">{label}</span>
                 {isActive && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-primary shadow-glow" />
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
                 )}
-                <Icon className="h-5 w-5 mb-0.5" />
-                {label}
               </>
             )}
           </NavLink>
         ))}
+      </nav>
 
+      {/* Sign out */}
+      <div className="px-3 py-4 border-t border-border/60">
         <AlertDialog open={open} onOpenChange={setOpen}>
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              aria-label="Sign out"
-              className="flex-1 flex flex-col items-center justify-start py-3 px-1 text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap text-destructive hover:text-destructive/80 transition-colors"
+              className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 transition-colors"
             >
-              <LogOut className="h-5 w-5 mb-0.5" />
-              Exit
+              <LogOut className="h-5 w-5" />
+              Sign out
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -106,8 +136,8 @@ const BottomNav = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </nav>
+    </aside>
   );
 };
 
-export default BottomNav;
+export default DesktopNav;
