@@ -207,6 +207,9 @@ const LCINewPage = () => {
       } else if ((briefData as any)?.error) {
         toast.error((briefData as any).error);
       }
+      // Fire-and-forget: notify the user's coach(es) that an LCI completed.
+      supabase.functions.invoke('notify-coach-lci', { body: { session_id: session.id } })
+        .catch((e) => console.error('[notify-coach-lci]', e));
       navigate('/lci');
     } catch (e) {
       console.error(e);

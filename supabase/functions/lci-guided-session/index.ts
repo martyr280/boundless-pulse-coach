@@ -198,6 +198,20 @@ Deno.serve(async (req) => {
       if (idx === STEPS.length - 1) {
         status = "complete";
         materializedId = await materialize(admin, userId, payload);
+        // Notify coach(es) — fire-and-forget so the user's response isn't blocked.
+        try {
+          const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-coach-lci`;
+          fetch(url, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ session_id: materializedId }),
+          }).catch((e) => console.error("[notify-coach-lci invoke]", e));
+        } catch (e) {
+          console.error("[notify-coach-lci]", e);
+        }
       } else {
         nextStep = STEPS[idx + 1];
       }
