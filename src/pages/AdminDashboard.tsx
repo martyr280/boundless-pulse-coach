@@ -11,6 +11,7 @@ import {
   Activity, ListChecks, BookHeart, HeartHandshake, MessageSquare, Bell,
   ArrowRight, GraduationCap,
 } from 'lucide-react';
+import NudgesToggle from '@/components/admin/NudgesToggle';
 
 interface Stats {
   users: {
