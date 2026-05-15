@@ -37,7 +37,7 @@ const ROLE_VARIANTS: Record<AppRole, { className: string }> = {
 type SortKey = 'created_at' | 'last_sign_in_at' | 'email' | 'display_name';
 
 export default function AdminUsers() {
-  const { session, user } = useAuth();
+  const { session, user, signOut } = useAuth();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | AppRole>('all');
@@ -46,17 +46,33 @@ export default function AdminUsers() {
   const [page, setPage] = useState(0);
   const pageSize = 25;
 
+  const handleAuthError = async (err: any) => {
+    const ctx = err?.context;
+    const status = ctx?.status ?? ctx?.response?.status;
+    if (status === 401) {
+      toast.error('Your session expired. Please sign in again.');
+      await signOut();
+      window.location.href = '/auth';
+      return true;
+    }
+    return false;
+  };
+
   const list = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('admin-users', {
         method: 'GET',
       });
-      if (error) throw error;
+      if (error) {
+        if (await handleAuthError(error)) return [] as AdminUser[];
+        throw error;
+      }
       return (data?.users ?? []) as AdminUser[];
     },
     enabled: !!session,
     staleTime: 30_000,
+    retry: false,
   });
 
   const mutate = useMutation({
