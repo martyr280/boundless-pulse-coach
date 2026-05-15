@@ -17,7 +17,7 @@ const queryClient = new QueryClient();
 
 const Shell = () => {
   const { pathname } = useLocation();
-  const noChrome = pathname === "/auth" || pathname === "/onboarding";
+  const noChrome = pathname === "/auth" || pathname === "/onboarding" || pathname === "/reset-password";
   return (
     <>
       <DesktopNav />
