@@ -94,7 +94,7 @@ export function useEndCycle() {
     mutationFn: async (input: { id: string; status: 'completed' | 'abandoned' }) => {
       const { error } = await supabase
         .from('user_cycles')
-        .update({ status: input.status, ended_on: new Date().toISOString().split('T')[0] })
+        .update({ status: input.status, ended_on: new Date().toISOString().split('T')[0] } as any)
         .eq('id', input.id);
       if (error) throw error;
     },
