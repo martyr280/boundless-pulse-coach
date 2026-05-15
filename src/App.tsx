@@ -20,23 +20,37 @@ const Shell = () => {
   return (
     <>
       <DesktopNav />
-      <div className={noChrome ? "min-h-screen" : "md:pl-60 pb-24 md:pb-0 min-h-screen"}>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/access-denied" element={<AccessDenied />} />
-          {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <ProtectedRoute allowedRoles={allowedRoles}>
-                  <Component />
-                </ProtectedRoute>
-              }
-            />
-          ))}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+      <div
+        className={
+          noChrome
+            ? "min-h-screen"
+            : "md:pl-60 pb-24 md:pb-0 min-h-screen"
+        }
+      >
+        <div
+          className={
+            noChrome
+              ? "w-full"
+              : "mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8"
+          }
+        >
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/access-denied" element={<AccessDenied />} />
+            {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <ProtectedRoute allowedRoles={allowedRoles}>
+                    <Component />
+                  </ProtectedRoute>
+                }
+              />
+            ))}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </div>
       <BottomNav />
     </>
