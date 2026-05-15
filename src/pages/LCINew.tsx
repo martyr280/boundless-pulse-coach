@@ -198,12 +198,12 @@ const LCINewPage = () => {
       }
 
       // 5. Trigger AI briefing (fire-and-forget for UX, but await so we can show it)
-      toast.success('LCI saved. Generating coach briefing…');
+      toast.success('Life Check In saved. Generating coach briefing…');
       const { data: briefData, error: briefErr } = await supabase.functions.invoke('lci-summary', {
         body: { session_id: session.id },
       });
       if (briefErr) {
-        toast.error((briefErr as any).message || 'Briefing failed (LCI still saved)');
+        toast.error((briefErr as any).message || 'Briefing failed (Life Check In still saved)');
       } else if ((briefData as any)?.error) {
         toast.error((briefData as any).error);
       }
@@ -236,7 +236,7 @@ const LCINewPage = () => {
 
       <div className="flex items-center gap-2 mb-1">
         <ClipboardList className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-extrabold">New LCI</h1>
+        <h1 className="text-2xl font-extrabold">New Life Check In</h1>
       </div>
       <p className="text-muted-foreground text-sm mb-4">
         Catch up, align, connect, and decide the top tasks for the next period.
@@ -248,7 +248,7 @@ const LCINewPage = () => {
       >
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">New · AI-Guided</p>
         <p className="text-sm font-semibold mt-1">Let the Boundless Coach walk you through it</p>
-        <p className="text-xs text-muted-foreground mt-1">A stepped conversation that materializes into a real LCI.</p>
+        <p className="text-xs text-muted-foreground mt-1">A stepped conversation that materializes into a real Life Check In.</p>
       </button>
 
       {/* Quick Pulse re-assessment */}
@@ -304,10 +304,10 @@ const LCINewPage = () => {
         </Card>
       </Collapsible>
 
-      {/* Next LCI date */}
+      {/* Next Life Check In date */}
       <Card className="border-2 rounded-3xl mb-4">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-bold">1. Next LCI Date</CardTitle>
+          <CardTitle className="text-sm font-bold">1. Next Life Check In Date</CardTitle>
         </CardHeader>
         <CardContent>
           <Input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)} className="rounded-2xl" />
@@ -350,7 +350,7 @@ const LCINewPage = () => {
         <CardContent className="space-y-4">
           {loadingPrior && <p className="text-xs text-muted-foreground">Loading prior tasks…</p>}
           {!loadingPrior && priorTasks.length === 0 && (
-            <p className="text-xs text-muted-foreground italic">No prior LCI found — skip this section.</p>
+            <p className="text-xs text-muted-foreground italic">No prior Life Check In found — skip this section.</p>
           )}
           {priorTasks.map((p, idx) => (
             <div key={p.id} className="border-2 rounded-2xl p-3 space-y-2">
