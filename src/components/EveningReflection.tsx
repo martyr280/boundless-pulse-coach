@@ -82,7 +82,7 @@ const EveningReflection = () => {
         >
           {save.isPending ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Saving\u2026
+              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Saving…
             </>
           ) : completed ? (
             'Update reflection'
