@@ -2,8 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type YearCategory = 'Being' | 'Relating' | 'Doing' | 'Having';
-export const YEAR_CATEGORIES: YearCategory[] = ['Being', 'Relating', 'Doing', 'Having'];
+export type YearCategory = 'Relationships' | 'Achievements' | 'Habits' | 'Wealth';
+export const YEAR_CATEGORIES: YearCategory[] = ['Relationships', 'Achievements', 'Habits', 'Wealth'];
+
+export const YEAR_CATEGORY_SUBTITLES: Record<YearCategory, string> = {
+  Relationships: 'Love, Family, Friends, Self',
+  Achievements: 'Significance, Winning, Impact',
+  Habits: 'Faith, Discipline, Fitness, Rituals',
+  Wealth: 'Finance, Legacy, Freedom',
+};
 
 export interface YearPriority {
   id: string;
