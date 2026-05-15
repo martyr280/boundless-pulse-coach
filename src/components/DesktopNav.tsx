@@ -44,6 +44,11 @@ const DesktopNav = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const { data: role } = useUserRole();
+
+  const tabs = role === 'admin'
+    ? [...baseTabs, { to: '/admin', icon: Shield, label: 'Admin' }]
+    : baseTabs;
 
   if (!session || location.pathname === '/auth' || location.pathname === '/onboarding')
     return null;
