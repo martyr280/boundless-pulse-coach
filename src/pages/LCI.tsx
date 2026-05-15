@@ -100,7 +100,7 @@ const LCIPage = () => {
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-extrabold">Life Check-In</h1>
         <Button onClick={() => navigate('/lci/new')} className="rounded-2xl font-bold">
-          <Plus className="h-4 w-4 mr-1" /> New LCI
+          <Plus className="h-4 w-4 mr-1" /> New Life Check In
         </Button>
       </div>
       <p className="text-muted-foreground text-sm mb-6">
@@ -113,12 +113,12 @@ const LCIPage = () => {
         <Card className="border-2 rounded-3xl">
           <CardContent className="p-6 text-center">
             <ClipboardList className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <p className="font-bold mb-1">No LCIs yet</p>
+            <p className="font-bold mb-1">No Life Check Ins yet</p>
             <p className="text-sm text-muted-foreground mb-4">
               Start your first Life Check-In worksheet.
             </p>
             <Button onClick={() => navigate('/lci/new')} className="rounded-2xl font-bold">
-              <Plus className="h-4 w-4 mr-1" /> Start LCI
+              <Plus className="h-4 w-4 mr-1" /> Start Life Check In
             </Button>
           </CardContent>
         </Card>
@@ -219,7 +219,7 @@ const LCIPage = () => {
 
                 {s.next_lci_date && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" /> Next LCI: {fmtDate(s.next_lci_date)}
+                    <Calendar className="h-3 w-3" /> Next Life Check In: {fmtDate(s.next_lci_date)}
                   </p>
                 )}
 

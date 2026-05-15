@@ -73,7 +73,7 @@ const ActionsPage = () => {
 
       <h1 className="text-2xl font-extrabold mb-1">Action Items</h1>
       <p className="text-muted-foreground text-sm mb-4">
-        Pulled from your LCIs. Add status notes to track follow-ups over time.
+        Pulled from your Life Check Ins. Add status notes to track follow-ups over time.
       </p>
 
       {/* Add new */}

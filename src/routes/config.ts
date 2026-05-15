@@ -7,6 +7,7 @@ import Coach from '@/pages/Coach';
 import Correlations from '@/pages/Correlations';
 import Nudges from '@/pages/Nudges';
 import CoachDashboard from '@/pages/CoachDashboard';
+import CoachManageCoachees from '@/pages/CoachManageCoachees';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
 import LCIGuided from '@/pages/LCIGuided';
@@ -45,11 +46,11 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/coach',       component: Coach,          label: 'AI Coach' },
   { path: '/correlations',component: Correlations,   label: 'Correlations' },
   { path: '/nudges',      component: Nudges,         label: 'Nudges' },
-  { path: '/lci',         component: LCI,            label: 'LCI' },
-  { path: '/lci/new',         component: LCINew,         label: 'New LCI' },
-  { path: '/lci/guided',      component: LCIGuided,      label: 'Guided LCI' },
-  { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided LCI' },
-  { path: '/lci/:id',         component: LCIDetail,      label: 'LCI Detail' },
+  { path: '/lci',         component: LCI,            label: 'Life Check In' },
+  { path: '/lci/new',         component: LCINew,         label: 'New Life Check In' },
+  { path: '/lci/guided',      component: LCIGuided,      label: 'Guided Life Check In' },
+  { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided Life Check In' },
+  { path: '/lci/:id',         component: LCIDetail,      label: 'Life Check In Detail' },
   { path: '/actions',     component: Actions,        label: 'Actions' },
 
   // Coach / admin only
@@ -58,6 +59,12 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
     component: CoachDashboard,
     allowedRoles: ['coach', 'admin'],
     label: 'Coach Dashboard',
+  },
+  {
+    path: '/coaches/manage',
+    component: CoachManageCoachees,
+    allowedRoles: ['coach', 'admin'],
+    label: 'Manage Coachees',
   },
   {
     path: '/admin',

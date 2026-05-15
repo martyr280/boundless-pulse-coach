@@ -394,7 +394,7 @@ function PillarStateSection() {
         </h2>
         <p className="text-sm text-muted-foreground max-w-2xl">
           For each of the 7 Fs, capture an honest read of today and a vivid picture of the future
-          you're building toward. These anchor every Pulse, LCI, and coaching conversation.
+          you're building toward. These anchor every Pulse, Life Check In, and coaching conversation.
         </p>
       </div>
 

@@ -63,8 +63,8 @@ export default function LCIDetail() {
   if (!session) {
     return (
       <div className="container max-w-3xl py-10 space-y-4">
-        <p className="font-bold">LCI not found.</p>
-        <Button onClick={() => navigate('/lci')} variant="outline">Back to LCI list</Button>
+        <p className="font-bold">Life Check In not found.</p>
+        <Button onClick={() => navigate('/lci')} variant="outline">Back to Life Check In list</Button>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function LCIDetail() {
         <h1 className="h-display text-3xl mt-2">{fmtDate(session.session_date)}</h1>
         {session.next_lci_date && (
           <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-            <Calendar className="h-3 w-3" /> Next LCI: {fmtDate(session.next_lci_date)}
+            <Calendar className="h-3 w-3" /> Next Life Check In: {fmtDate(session.next_lci_date)}
           </p>
         )}
       </div>

@@ -91,7 +91,7 @@ export default function LCIGuided() {
         navigate(`/lci/guided/${data.run_id}`, { replace: true });
       }
       if (data.status === 'complete' && data.materialized_session_id) {
-        toast.success('Guided LCI complete — saved to your LCI history.');
+        toast.success('Guided Life Check In complete — saved to your Life Check In history.');
         setTimeout(() => navigate(`/lci/${data.materialized_session_id}`), 1200);
       } else if (data.step_complete && data.status !== 'complete') {
         // Step advanced — chain another turn so the coach kicks off the new step.
@@ -112,7 +112,7 @@ export default function LCIGuided() {
   return (
     <div className="container max-w-3xl py-10 space-y-6">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Guided LCI</p>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Guided Life Check In</p>
         <h1 className="h-display text-3xl mt-2">{LABELS[step] ?? step}</h1>
         <Progress value={progress} className="mt-4" />
         <p className="text-xs text-muted-foreground mt-2">Step {Math.min(stepIdx + 1, STEPS.length)} of {STEPS.length}</p>

@@ -22,7 +22,7 @@ const buildTabs = (cycleActive: boolean) => [
   { to: '/guide', icon: BookOpen, label: 'Guide' },
   { to: '/checkin', icon: Target, label: 'Now' },
   { to: '/weekly', icon: CalendarDays, label: cycleActive ? 'Daily' : 'Weekly' },
-  { to: '/lci', icon: ClipboardList, label: 'LCI' },
+  { to: '/lci', icon: ClipboardList, label: 'Life Check In' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
   { to: '/partner', icon: Users, label: 'Partner' },
