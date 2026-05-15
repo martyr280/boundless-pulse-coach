@@ -93,15 +93,15 @@ const WeeklyPage = () => {
 
       <HeroFrame
         image={heroSummit}
-        eyebrow={<SectionEyebrow>Your Weekly Breakdown</SectionEyebrow>}
+        eyebrow={<SectionEyebrow>{cycleActive ? `Your Daily Breakdown · Day ${cycle?.dayNumber} of ${cycle?.targetDays}` : 'Your Weekly Breakdown'}</SectionEyebrow>}
         title={
           showForm ? (
-            <>How was <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">your week</span>?</>
+            <>How was <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">your {cycleActive ? 'day' : 'week'}</span>?</>
           ) : (
-            <>This week, <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">in summary</span></>
+            <>This {cycleActive ? 'day' : 'week'}, <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">in summary</span></>
           )
         }
-        subtitle={showForm ? 'Rate each pillar 1–10 for the week' : formatWeekRange(weekStart)}
+        subtitle={showForm ? 'Rate each pillar 1–10' : formatWeekRange(weekStart)}
         height="md"
         align="left"
         className="mb-6"
