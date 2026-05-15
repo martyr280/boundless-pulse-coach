@@ -110,7 +110,7 @@ const Index = () => {
           className="w-fit font-bold rounded-full uppercase tracking-[0.18em] px-6 h-11"
           onClick={() => navigate('/checkin')}
         >
-          Monthly Check-in
+          Daily Check-in
         </Button>
       </HeroFrame>
 
