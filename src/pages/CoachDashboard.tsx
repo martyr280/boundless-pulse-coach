@@ -293,16 +293,27 @@ const CoachDashboard = () => {
               {coachName} · {members.length} Members
             </p>
           </div>
-          <Button
-            onClick={runAnalysis}
-            disabled={analyzing}
-            variant="premium"
-            size="sm"
-            className="font-bold rounded-full uppercase tracking-[0.18em] text-xs"
-          >
-            {analyzing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
-            Analyze
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => navigate('/coaches/manage')}
+              variant="outline"
+              size="sm"
+              className="font-bold rounded-full uppercase tracking-[0.18em] text-xs"
+            >
+              <Users className="h-3 w-3 mr-1" />
+              Manage
+            </Button>
+            <Button
+              onClick={runAnalysis}
+              disabled={analyzing}
+              variant="premium"
+              size="sm"
+              className="font-bold rounded-full uppercase tracking-[0.18em] text-xs"
+            >
+              {analyzing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+              Analyze
+            </Button>
+          </div>
         </div>
       </div>
 
