@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SectionEyebrow } from '@/components/visual/SectionEyebrow';
+import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import { toast } from 'sonner';
 import { Loader2, Plus, FileText, BookOpen, CheckCircle2, Trash2 } from 'lucide-react';
 
