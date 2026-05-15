@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import DesktopNav from "@/components/DesktopNav";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 import { protectedRoutes } from "./routes/config";
@@ -16,7 +17,7 @@ const queryClient = new QueryClient();
 
 const Shell = () => {
   const { pathname } = useLocation();
-  const noChrome = pathname === "/auth" || pathname === "/onboarding";
+  const noChrome = pathname === "/auth" || pathname === "/onboarding" || pathname === "/reset-password";
   return (
     <>
       <DesktopNav />
@@ -36,6 +37,7 @@ const Shell = () => {
         >
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/access-denied" element={<AccessDenied />} />
             {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
               <Route

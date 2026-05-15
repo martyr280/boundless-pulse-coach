@@ -33,6 +33,7 @@ const AuthPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [pendingVerify, setPendingVerify] = useState(false);
   const [otp, setOtp] = useState('');
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const from = (location.state as any)?.from || '/';
 
@@ -98,6 +99,27 @@ const AuthPage = () => {
       toast.success('New code sent.');
     } catch (err: any) {
       toast.error(err.message || 'Could not resend code');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const emailParse = z.string().trim().email().safeParse(email);
+    if (!emailParse.success) {
+      toast.error('Enter your email above first, then tap "Forgot password?"');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setForgotOpen(true);
+      toast.success('Password reset link sent. Check your email.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send reset email');
     } finally {
       setSubmitting(false);
     }
@@ -287,9 +309,26 @@ const AuthPage = () => {
                         className="rounded-xl mt-1" required />
                     </div>
                     <div>
-                      <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                      <div className="flex items-baseline justify-between">
+                        <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                        {mode === 'signin' && (
+                          <button
+                            type="button"
+                            onClick={handleForgotPassword}
+                            disabled={submitting}
+                            className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary hover:underline disabled:opacity-50"
+                          >
+                            Forgot?
+                          </button>
+                        )}
+                      </div>
                       <Input id="password" type="password" value={password}
                         onChange={(e) => setPassword(e.target.value)} className="rounded-xl mt-1" required minLength={8} />
+                      {forgotOpen && mode === 'signin' && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          We sent a password reset link to <span className="text-foreground">{email}</span>. Check your inbox.
+                        </p>
+                      )}
                     </div>
                     <Button
                       type="submit"
