@@ -93,6 +93,11 @@ export default function LCIGuided() {
       if (data.status === 'complete' && data.materialized_session_id) {
         toast.success('Guided LCI complete — saved to your LCI history.');
         setTimeout(() => navigate(`/lci/${data.materialized_session_id}`), 1200);
+      } else if (data.step_complete && data.status !== 'complete') {
+        // Step advanced — chain another turn so the coach kicks off the new step.
+        setBusy(false);
+        await turn(undefined, false, data.run_id);
+        return;
       }
     } catch (e: any) {
       toast.error(e.message || 'Coach error');
