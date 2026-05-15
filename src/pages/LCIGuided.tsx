@@ -32,20 +32,49 @@ export default function LCIGuided() {
       if (id) {
         const { data } = await supabase.from('lci_guided_runs').select('*').eq('id', id).maybeSingle();
         if (data) {
+          setRunId(data.id);
           setStep(data.step); setStatus(data.status);
           setMessages((data.messages as any[]) ?? []);
+          // If resumed run has no messages yet, kick off the first turn.
+          if (!((data.messages as any[]) ?? []).length) {
+            await turn(undefined, false, data.id);
+          }
         }
-      } else {
-        await turn(undefined, true);
+        return;
       }
+      // No id in URL — try to resume latest in-progress run, otherwise start new.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: existing } = await supabase
+          .from('lci_guided_runs')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'in_progress')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (existing) {
+          setRunId(existing.id);
+          setStep(existing.step); setStatus(existing.status);
+          setMessages((existing.messages as any[]) ?? []);
+          navigate(`/lci/guided/${existing.id}`, { replace: true });
+          if (!((existing.messages as any[]) ?? []).length) {
+            await turn(undefined, false, existing.id);
+          }
+          return;
+        }
+      }
+      await turn(undefined, true);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function turn(user_message?: string, start = false) {
+  async function turn(user_message?: string, start = false, explicitRunId?: string) {
     setBusy(true);
     try {
+      const activeRunId = explicitRunId ?? runId;
       const { data, error } = await supabase.functions.invoke('lci-guided-session', {
-        body: { run_id: runId, user_message, start },
+        body: { run_id: activeRunId, user_message, start },
       });
       if (error) throw new Error((data as any)?.error || error.message);
       setRunId(data.run_id);
@@ -57,6 +86,10 @@ export default function LCIGuided() {
         if (data.assistant) next.push({ role: 'assistant', content: data.assistant });
         return next;
       });
+      // Persist run id in URL so refresh / return resumes the conversation.
+      if (data.run_id && data.run_id !== id) {
+        navigate(`/lci/guided/${data.run_id}`, { replace: true });
+      }
       if (data.status === 'complete' && data.materialized_session_id) {
         toast.success('Guided LCI complete — saved to your LCI history.');
         setTimeout(() => navigate(`/lci/${data.materialized_session_id}`), 1200);
