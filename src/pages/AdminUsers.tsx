@@ -50,7 +50,7 @@ export default function AdminUsers() {
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: undefined,
+        method: 'GET',
       });
       if (error) throw error;
       return (data?.users ?? []) as AdminUser[];
