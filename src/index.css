@@ -130,3 +130,19 @@
     font-style: italic;
   }
 }
+
+@media print {
+  /* Hide app chrome */
+  aside, nav, [data-print-hide], .print\:hidden { display: none !important; }
+  /* Reset shell padding/margins so content fills the page */
+  body, html { background: #fff !important; color: #000 !important; }
+  body * { box-shadow: none !important; }
+  .md\:pl-60 { padding-left: 0 !important; }
+  .pb-24 { padding-bottom: 0 !important; }
+  .min-h-screen { min-height: 0 !important; }
+  .max-w-5xl { max-width: 100% !important; }
+  main, .mx-auto { margin: 0 !important; padding: 0 !important; }
+  /* Avoid clipping */
+  * { overflow: visible !important; }
+  @page { margin: 0.5in; }
+}
