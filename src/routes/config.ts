@@ -49,6 +49,7 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/lci/new',         component: LCINew,         label: 'New LCI' },
   { path: '/lci/guided',      component: LCIGuided,      label: 'Guided LCI' },
   { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided LCI' },
+  { path: '/lci/:id',         component: LCIDetail,      label: 'LCI Detail' },
   { path: '/actions',     component: Actions,        label: 'Actions' },
 
   // Coach / admin only
