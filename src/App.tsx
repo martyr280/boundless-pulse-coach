@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
+import DesktopNav from "@/components/DesktopNav";
 import Auth from "./pages/Auth";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
@@ -20,22 +21,25 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/access-denied" element={<AccessDenied />} />
-            {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
-              <Route
-                key={path}
-                path={path}
-                element={
-                  <ProtectedRoute allowedRoles={allowedRoles}>
-                    <Component />
-                  </ProtectedRoute>
-                }
-              />
-            ))}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <DesktopNav />
+          <div className="md:pl-60 pb-24 md:pb-0 min-h-screen">
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/access-denied" element={<AccessDenied />} />
+              {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={
+                    <ProtectedRoute allowedRoles={allowedRoles}>
+                      <Component />
+                    </ProtectedRoute>
+                  }
+                />
+              ))}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
           <BottomNav />
         </AuthProvider>
       </BrowserRouter>
