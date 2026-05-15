@@ -125,6 +125,30 @@ const AuthPage = () => {
     }
   };
 
+  const handleMagicLink = async () => {
+    const emailParse = z.string().trim().email().safeParse(email);
+    if (!emailParse.success) {
+      toast.error('Enter your email first, then tap "Email me a magic link"');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailParse.data,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: false,
+        },
+      });
+      if (error) throw error;
+      toast.success('Magic link sent. Check your email to sign in.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send magic link');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const friendlyOAuthError = (err: unknown): string => {
     const raw =
       (err as any)?.message ??
