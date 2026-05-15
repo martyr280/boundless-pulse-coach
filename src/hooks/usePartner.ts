@@ -93,25 +93,14 @@ export function useSendPartnerRequest() {
       if (!user) throw new Error('Not signed in');
       const cleaned = email.trim().toLowerCase();
       if (!cleaned) throw new Error('Enter an email.');
-      const { data: target, error: lookupErr } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .ilike('email', cleaned)
-        .maybeSingle();
-      if (lookupErr) throw lookupErr;
-      if (!target) throw new Error('No Boundless account found for that email.');
-      if (target.id === user.id) throw new Error('You cannot partner with yourself.');
-      const { error } = await supabase.from('user_partnerships').insert({
-        requester_id: user.id,
-        recipient_id: target.id,
-        status: 'pending',
+      const { data, error } = await supabase.functions.invoke('partner-request', {
+        body: { email: cleaned },
       });
       if (error) {
-        if ((error as any).code === '23505') {
-          throw new Error('You already have a partnership request with that user.');
-        }
-        throw error;
+        const msg = (data as any)?.error || error.message || 'Could not send request.';
+        throw new Error(msg);
       }
+      if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['user_partnerships'] }),
   });
