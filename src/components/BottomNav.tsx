@@ -19,7 +19,7 @@ import {
 const tabs = [
   { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
-  { to: '/checkin', icon: Target, label: 'Your Now' },
+  { to: '/checkin', icon: Target, label: 'Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
   { to: '/partner', icon: Users, label: 'Partner' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
@@ -62,7 +62,7 @@ const BottomNav = () => {
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `relative flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+              `relative flex-1 flex flex-col items-center justify-start py-3 px-1 text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap transition-colors ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`
             }
@@ -84,10 +84,10 @@ const BottomNav = () => {
             <button
               type="button"
               aria-label="Sign out"
-              className="flex-1 flex flex-col items-center py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-destructive hover:text-destructive/80 transition-colors"
+              className="flex-1 flex flex-col items-center justify-start py-3 px-1 text-[9px] font-bold uppercase tracking-[0.1em] whitespace-nowrap text-destructive hover:text-destructive/80 transition-colors"
             >
               <LogOut className="h-5 w-5 mb-0.5" />
-              Sign out
+              Exit
             </button>
           </AlertDialogTrigger>
           <AlertDialogContent>
