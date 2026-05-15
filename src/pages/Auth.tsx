@@ -31,6 +31,8 @@ const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pendingVerify, setPendingVerify] = useState(false);
+  const [otp, setOtp] = useState('');
 
   const from = (location.state as any)?.from || '/';
 
@@ -48,21 +50,54 @@ const AuthPage = () => {
     setSubmitting(true);
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: displayName || email.split('@')[0] },
-          },
+        const { data, error } = await supabase.functions.invoke('signup-with-verification', {
+          body: { email, password, display_name: displayName },
         });
-        if (error) throw error;
-        toast.success('Account created! Signing you in…');
+        if (error) throw new Error((data as any)?.error || error.message);
+        if ((data as any)?.error) throw new Error((data as any).error);
+        setPendingVerify(true);
+        toast.success('Check your email for a 6-digit verification code.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
     } catch (err: any) {
       toast.error(err.message || 'Authentication failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email, code },
+      });
+      if (error) throw new Error((data as any)?.error || error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) throw signInErr;
+      toast.success('Email verified. Welcome to Boundless.');
+    } catch (err: any) {
+      toast.error(err.message || 'Verification failed');
+      setOtp('');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('signup-with-verification', {
+        body: { email, password, display_name: displayName },
+      });
+      if (error) throw new Error((data as any)?.error || error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success('New code sent.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not resend code');
     } finally {
       setSubmitting(false);
     }
