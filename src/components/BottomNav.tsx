@@ -18,13 +18,13 @@ import {
 
 const tabs = [
   { to: '/', icon: MountainMark, label: 'Pulse' },
-  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
-  { to: '/checkin', icon: Target, label: 'Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
-  { to: '/partner', icon: Users, label: 'Partner' },
+  { to: '/checkin', icon: Target, label: 'Now' },
+  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
+  { to: '/partner', icon: Users, label: 'Partner' },
 ];
 
 const BottomNav = () => {
