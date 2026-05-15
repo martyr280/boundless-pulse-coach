@@ -104,6 +104,27 @@ const AuthPage = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    const emailParse = z.string().trim().email().safeParse(email);
+    if (!emailParse.success) {
+      toast.error('Enter your email above first, then tap "Forgot password?"');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setForgotOpen(true);
+      toast.success('Password reset link sent. Check your email.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send reset email');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const friendlyOAuthError = (err: unknown): string => {
     const raw =
       (err as any)?.message ??
