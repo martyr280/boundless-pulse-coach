@@ -29,9 +29,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: userData, error: userErr } = await admin.auth.getUser(token);
-    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
-    const callerId = userData.user.id;
+    const { data: claimsData, error: userErr } = await admin.auth.getClaims(token);
+    if (userErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    const callerId = claimsData.claims.sub as string;
 
     // Verify caller is admin
     const { data: callerRoles } = await admin
