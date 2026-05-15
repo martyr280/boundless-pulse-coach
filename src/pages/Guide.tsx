@@ -1098,8 +1098,18 @@ function Recap({ onRestart, onJump }: { onRestart: () => void; onJump?: (n: numb
 
 // ---------------- Landing splash ----------------
 
-function Landing({ onStart, hasSession }: { onStart: () => void; hasSession: boolean }) {
-  const navigate = useNavigate();
+function Landing({ onStart, hasSession, currentStep, completed, onOverview }: {
+  onStart: () => void;
+  hasSession: boolean;
+  currentStep: number;
+  completed: boolean;
+  onOverview: () => void;
+}) {
+  const primaryLabel = !hasSession
+    ? 'Begin the workshop'
+    : completed
+      ? 'Revisit the workshop'
+      : `Continue at step ${currentStep || 1}`;
   return (
     <div className="space-y-6">
       <HeroFrame
@@ -1118,11 +1128,12 @@ function Landing({ onStart, hasSession }: { onStart: () => void; hasSession: boo
         <div className="flex flex-wrap gap-2">
           <Button onClick={onStart} size="lg">
             <BookOpen className="h-4 w-4 mr-2" />
-            {hasSession ? 'Continue the workshop' : 'Begin the workshop'}
+            {primaryLabel}
           </Button>
           {hasSession && (
-            <Button variant="outline" onClick={() => navigate('/guide?view=recap')}>
-              View my recap
+            <Button variant="outline" onClick={onOverview}>
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              {completed ? 'Open overview' : 'See overview'}
             </Button>
           )}
         </div>
@@ -1141,15 +1152,17 @@ const GuidePage = () => {
   const { data: session, isLoading } = useWorkshopSession();
   const start = useStartOrUpdateWorkshop();
   const markComplete = useMarkStepComplete();
+  const filled = useFilledSteps();
 
   const step = stepParam ? parseInt(stepParam, 10) : 0;
-  const isRecap = view === 'recap' || (session?.completed_at != null && step === 0);
+  const isOverview = view === 'overview' || view === 'recap';
 
   const goStep = (n: number) => {
-    if (n > TOTAL_STEPS) { setParams({ view: 'recap' }); return; }
+    if (n > TOTAL_STEPS) { setParams({ view: 'overview' }); return; }
     if (n < 1) { setParams({}); return; }
-    setParams({ step: n.toString() });
+    setParams({ view: 'workshop', step: n.toString() });
   };
+  const goOverview = () => setParams({ view: 'overview' });
 
   const handleNext = async (currentStep: number) => {
     try { await markComplete.mutateAsync(currentStep); } catch { /* non-fatal */ }
@@ -1172,39 +1185,80 @@ const GuidePage = () => {
     );
   }
 
+  const showTabs = step > 0 || isOverview;
+
+  const navValue: GuideNav = { goStep, goOverview, filled, currentStep: step };
+
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {isRecap ? (
-          <Recap onRestart={() => goStep(1)} />
-        ) : step === 0 ? (
-          <Landing onStart={beginWorkshop} hasSession={!!session} />
-        ) : step === 1 ? (
-          <Step1Welcome onNext={() => handleNext(1)} />
-        ) : step === 2 ? (
-          <Step2Ideas onBack={() => goStep(1)} onNext={() => handleNext(2)} />
-        ) : step === 3 ? (
-          <Step3Scores onBack={() => goStep(2)} onNext={() => handleNext(3)} />
-        ) : step === 4 ? (
-          <Step4Reflection onBack={() => goStep(3)} onNext={() => handleNext(4)} />
-        ) : step === 5 ? (
-          <Step5YourLife onBack={() => goStep(4)} onNext={() => handleNext(5)} />
-        ) : step === 6 ? (
-          <Step6YourYear onBack={() => goStep(5)} onNext={() => handleNext(6)} />
-        ) : step === 7 ? (
-          <Step7YourWhy onBack={() => goStep(6)} onNext={() => handleNext(7)} />
-        ) : step === 8 ? (
-          <Step8BestSelf onBack={() => goStep(7)} onNext={() => handleNext(8)} />
-        ) : step === 9 ? (
-          <Step9YourMonth onBack={() => goStep(8)} onFinish={async () => {
-            await markComplete.mutateAsync(9).catch(() => {});
-            setParams({ view: 'recap' });
-          }} />
-        ) : (
-          <Landing onStart={beginWorkshop} hasSession={!!session} />
-        )}
+    <GuideNavContext.Provider value={navValue}>
+      <div className="min-h-screen bg-background pb-32">
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+          {showTabs && (
+            <div className="flex items-center gap-1 print:hidden" data-print-hide>
+              <button
+                onClick={() => goStep(step > 0 ? step : (session?.current_step ?? 1))}
+                className={[
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border transition-colors',
+                  !isOverview ? 'bg-primary text-primary-foreground border-primary' : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+                ].join(' ')}
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Workshop
+              </button>
+              <button
+                onClick={goOverview}
+                className={[
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border transition-colors',
+                  isOverview ? 'bg-primary text-primary-foreground border-primary' : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+                ].join(' ')}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Overview
+              </button>
+            </div>
+          )}
+
+          {isOverview ? (
+            <Recap onRestart={() => goStep(1)} onJump={goStep} />
+          ) : step === 0 ? (
+            <Landing
+              onStart={beginWorkshop}
+              hasSession={!!session}
+              currentStep={session?.current_step ?? 1}
+              completed={!!session?.completed_at}
+              onOverview={goOverview}
+            />
+          ) : step === 1 ? (
+            <Step1Welcome onNext={() => handleNext(1)} />
+          ) : step === 2 ? (
+            <Step2Ideas onBack={() => goStep(1)} onNext={() => handleNext(2)} />
+          ) : step === 3 ? (
+            <Step3Scores onBack={() => goStep(2)} onNext={() => handleNext(3)} />
+          ) : step === 4 ? (
+            <Step4Reflection onBack={() => goStep(3)} onNext={() => handleNext(4)} />
+          ) : step === 5 ? (
+            <Step5YourLife onBack={() => goStep(4)} onNext={() => handleNext(5)} />
+          ) : step === 6 ? (
+            <Step6YourYear onBack={() => goStep(5)} onNext={() => handleNext(6)} />
+          ) : step === 7 ? (
+            <Step7YourWhy onBack={() => goStep(6)} onNext={() => handleNext(7)} />
+          ) : step === 8 ? (
+            <Step8BestSelf onBack={() => goStep(7)} onNext={() => handleNext(8)} />
+          ) : step === 9 ? (
+            <Step9YourMonth onBack={() => goStep(8)} onFinish={async () => {
+              await markComplete.mutateAsync(9).catch(() => {});
+              setParams({ view: 'overview' });
+            }} />
+          ) : (
+            <Landing
+              onStart={beginWorkshop}
+              hasSession={!!session}
+              currentStep={session?.current_step ?? 1}
+              completed={!!session?.completed_at}
+              onOverview={goOverview}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </GuideNavContext.Provider>
   );
 };
 
