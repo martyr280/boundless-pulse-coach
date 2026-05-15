@@ -154,6 +154,42 @@ export type Database = {
           },
         ]
       }
+      boundless_documents: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          created_by: string | null
+          embedding: string | null
+          id: string
+          metadata: Json
+          source: string
+          title: string
+        }
+        Insert: {
+          chunk_index?: number
+          content: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source: string
+          title: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source?: string
+          title?: string
+        }
+        Relationships: []
+      }
       coach_insights: {
         Row: {
           body: string
@@ -1092,6 +1128,21 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_boundless_documents: {
+        Args: {
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          content: string
+          id: string
+          metadata: Json
+          similarity: number
+          source: string
+          title: string
+        }[]
       }
     }
     Enums: {
