@@ -9,6 +9,7 @@ import Nudges from '@/pages/Nudges';
 import CoachDashboard from '@/pages/CoachDashboard';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
+import LCIGuided from '@/pages/LCIGuided';
 import Actions from '@/pages/Actions';
 import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
