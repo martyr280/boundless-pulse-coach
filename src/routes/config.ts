@@ -10,6 +10,7 @@ import CoachDashboard from '@/pages/CoachDashboard';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
 import LCIGuided from '@/pages/LCIGuided';
+import LCIDetail from '@/pages/LCIDetail';
 import Actions from '@/pages/Actions';
 import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
