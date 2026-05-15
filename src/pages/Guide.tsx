@@ -88,6 +88,87 @@ const STEP_TITLES: Record<number, { eyebrow: string; title: string; intro: strin
 
 const RECAP_STEP = TOTAL_STEPS + 1; // step 10 = recap
 
+// ---------------- Nav context ----------------
+
+interface GuideNav {
+  goStep: (n: number) => void;
+  goOverview: () => void;
+  filled: Record<number, boolean>;
+  currentStep: number;
+}
+const GuideNavContext = createContext<GuideNav | null>(null);
+const useGuideNav = () => useContext(GuideNavContext);
+
+function useFilledSteps(): Record<number, boolean> {
+  const { data: profile } = useProfile();
+  const { data: ideas = [] } = useGeneralIdeas();
+  const { data: priorities = [] } = useYearPriorities();
+  const { data: states = [] } = usePillarStates();
+  const { data: vision } = useLifeVision();
+  const { data: whys = [] } = useWhyStatements();
+  const { data: habits = [] } = useBestSelfHabits();
+  const { data: actions = [] } = useMonthActions();
+
+  let visionGrid: Record<string, string> = {};
+  try { visionGrid = JSON.parse(vision?.vision_text || '{}').grid ?? {}; } catch { /* */ }
+
+  return {
+    1: !!profile?.display_name,
+    2: ideas.length > 0 || priorities.some((p) => (p as any).kind === 'priority_idea'),
+    3: states.length > 0, // checkin proxy: pillar states exist after step 4 too — refine via checkin if needed
+    4: states.some((s) => (s.current_state || '').trim() || (s.future_state || '').trim()),
+    5: Object.values(visionGrid).some((v) => (v as string)?.trim()),
+    6: priorities.some((p) => !(p as any).kind || (p as any).kind === 'year_priority'),
+    7: whys.length > 0,
+    8: habits.length > 0,
+    9: actions.length > 0,
+  };
+}
+
+function StepIndexRail() {
+  const nav = useGuideNav();
+  if (!nav) return null;
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => {
+        const isCurrent = nav.currentStep === n;
+        const isFilled = nav.filled[n];
+        return (
+          <button
+            key={n}
+            onClick={() => nav.goStep(n)}
+            title={STEP_TITLES[n]?.title}
+            className={[
+              'shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors',
+              isCurrent
+                ? 'bg-primary text-primary-foreground border-primary'
+                : isFilled
+                  ? 'border-primary/40 text-foreground bg-primary/10 hover:bg-primary/20'
+                  : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+            ].join(' ')}
+          >
+            <span className={[
+              'h-4 w-4 inline-flex items-center justify-center rounded-full text-[9px]',
+              isCurrent ? 'bg-primary-foreground/20' : isFilled ? 'bg-primary/30' : 'bg-muted/60',
+            ].join(' ')}>
+              {isFilled && !isCurrent ? <Check className="h-2.5 w-2.5" /> : n}
+            </span>
+            <span className="hidden md:inline">{STEP_TITLES[n]?.title.replace(/^\(?Y\)?our\s*/i, '')}</span>
+          </button>
+        );
+      })}
+      <button
+        onClick={() => nav.goOverview()}
+        className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/40 ml-1"
+        title="Overview"
+      >
+        <LayoutGrid className="h-3 w-3" />
+        <span className="hidden md:inline">Overview</span>
+      </button>
+    </div>
+  );
+}
+
 // ---------------- Shell ----------------
 
 function WorkshopShell({
@@ -105,6 +186,7 @@ function WorkshopShell({
   const pct = Math.round((step / TOTAL_STEPS) * 100);
   return (
     <div className="space-y-6">
+      <StepIndexRail />
       <div className="space-y-3">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="eyebrow">{meta?.eyebrow}</span>
