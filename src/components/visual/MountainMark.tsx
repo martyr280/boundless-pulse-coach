@@ -13,7 +13,7 @@ const MountainMark = ({ className }: Props) => (
     src="/favicon.png"
     alt=""
     aria-hidden="true"
-    className={cn('object-contain dark:invert', className)}
+    className={cn('object-contain invert', className)}
   />
 );
 
