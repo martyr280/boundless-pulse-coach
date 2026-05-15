@@ -10,6 +10,7 @@ import CoachDashboard from '@/pages/CoachDashboard';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
 import LCIGuided from '@/pages/LCIGuided';
+import LCIDetail from '@/pages/LCIDetail';
 import Actions from '@/pages/Actions';
 import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
@@ -48,6 +49,7 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/lci/new',         component: LCINew,         label: 'New LCI' },
   { path: '/lci/guided',      component: LCIGuided,      label: 'Guided LCI' },
   { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided LCI' },
+  { path: '/lci/:id',         component: LCIDetail,      label: 'LCI Detail' },
   { path: '/actions',     component: Actions,        label: 'Actions' },
 
   // Coach / admin only
