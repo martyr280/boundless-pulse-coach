@@ -1,115 +1,99 @@
 
-## Goal
+# Boundless Life Guide — step-by-step workshop on /guide
 
-Close every gap between the Boundless AI Platform proposal and the current app. Items below are scoped to UI + data + edge functions already supported by the stack — no infrastructure changes.
+Turn `/guide` into a paginated wizard that walks one user through the printed Boundless Life Guide, page by page, so a facilitator can lead a classroom and say "everyone, we're now on Step 3" and each participant fills in the matching screen on their own device. The data lands in the same tables the rest of the app already reads from (Pulse, AI Coach, Actions), so the workshop populates the platform — not a parallel data island.
 
-## Gap Inventory
-
-| # | Gap | Feature area |
-|---|---|---|
-| G1 | RAG pipeline grounded in Boundless IP (vector store + ingestion) | Guide Data Repository |
-| G2 | Admin CMS to push framework updates (vision/year/methodology content) | Guide Data Repository |
-| G3 | Evening reflection prompt + 30-Day Cycle tracking | Journaling |
-| G4 | Inbound WhatsApp reply → captured into journal | Journaling |
-| G5 | AI-led full LCI walk-through (guided session, not free chat) | Coaching |
-| G6 | Partner-aware weekly nudges ("partner updated their Top Tasks…") | Coaching |
-| G7 | Enterprise / HR aggregated cohort dashboard (anonymized trends) | Coaching |
+A separate facilitator/classroom layer (advance-the-room, see-who's-done) is **out of scope for this round** and will be added later.
 
 ---
 
-## Phased Plan
+## A. Vocabulary alignment (one-time rename)
 
-### Phase 1 — Daily Loop Completion (G3, G4)
-Smallest, highest-frequency wins. Strengthens the daily habit before layering anything new.
+The printed guide uses different words than the app. We align the app to the PDF.
 
-**G3 — Evening reflection + 30-Day Cycle**
-- Add columns to `user_journal_entries`: `evening_reflection TEXT`, `evening_completed_at TIMESTAMPTZ`, `cycle_day INT`.
-- Add `user_cycles` table: `id, user_id, started_on date, ended_on date, target_days int default 30, status text`.
-- Trigger to auto-assign `cycle_day` on journal insert based on the user's active cycle.
-- `/guide` page: split into **Morning** and **Evening** cards. Evening card unlocks after a configurable hour (user timezone). Shows reflection prompt + completion check.
-- New `<CycleProgress>` strip on `/` and `/guide`: "Day 12 of 30 · 9 completed".
-- Hook: `useCurrentCycle()`.
+1. **Pillars:** rename `Faculty → Friends` and `Freedom → Field` everywhere — `lib/types.ts` (`PILLARS`, `PILLAR_SUBTOPICS`), every page that displays the labels, the radar chart, weekly resets, AI coach prompts. `cohort_checkins` and `user_weekly_resets` columns are already named `friends` and `field`, so no DB migration needed there. Existing `user_pillar_scores.pillar` and `user_pillar_state.pillar` are free-text, so we issue an `UPDATE` to remap any existing rows from `Faculty`/`Freedom` to `Friends`/`Field`.
+2. **Year categories:** rename `Being / Relating / Doing / Having → Relationships / Achievements / Habits / Wealth` in `useGuide.ts` (`YearCategory`, `YEAR_CATEGORIES`, `CATEGORY_DESCRIPTIONS`) and run an `UPDATE user_year_priorities SET category = …` to remap existing rows.
+3. Update `mem://index.md` Core line to say "Family, Finance, Faith, Fitness, Friends, Fun, Field" and the new Year categories.
 
-**G4 — Inbound WhatsApp capture**
-- New edge function `whatsapp-inbound` (Twilio webhook, `verify_jwt = false`).
-- Maps `From:` E.164 → `nudge_preferences.phone_number` → `user_id`.
-- Looks at the last `nudge_log` entry sent to that user in the past 12h to determine intent (gratitude / habit / step / evening reflection) and writes the body into the matching column on today's `user_journal_entries` (upserted).
-- Logs to a new `nudge_inbound_log` table for audit.
-- Configure Twilio sandbox webhook URL in Connectors (instructions only — user action).
+No schema changes are required — only data updates and code changes.
+
+## B. New schema for things the printed guide captures that the app doesn't
+
+One migration adds:
+
+- `workshop_sessions` — one row per user per workshop run. Tracks `current_step`, `completed_at`, `mantra` text, `future_self_date` (the 10+ year date), `future_self_age`, and a JSON `important_people` array (`[{ name, age }]`) for "Your Life" page. RLS: own-row only.
+- `user_best_self_habits` — the "Starts / Stops" daily habits from page 7. Columns: `habit_text`, `kind` ('start' | 'stop'), `position`, `is_active`. RLS own-row. The Pulse / Journal habit checklist will read from this so what they wrote in the workshop becomes their daily habit list.
+- `user_month_actions` — page 8's "up to six 30-day actions". Columns: `action_text`, `position`, `due_date`, `completed_at`, `cycle_id` (FK to `user_cycles`). On step completion we also write each one into `action_items` so they show on /actions and can be coached against.
+
+Reused as-is:
+- `user_life_vision` ← "Your Life" narrative (rendered from the future-state grid).
+- `user_year_priorities` ← "Your Year" four columns.
+- `user_truth_statements` ← "Your Why" 7-levels output (already perfect for this).
+- `user_pillar_state` (current_state / future_state) ← "Your Now" reflections.
+- `user_checkins` + `user_pillar_scores` ← "Your Now" 1–10 scores (creates a checkin tagged as the workshop baseline).
+- `user_year_priorities` "Priority Ideas" go into a new `kind` column on the same table (`'priority_idea' | 'year_priority'`) so page 2 ideas live alongside the priorities they may become. (Adds `kind text default 'year_priority'` and `general_idea text` is held in a sibling table `user_general_ideas { idea_text, position }`.)
+
+## C. The wizard
+
+`/guide` becomes a 9-step flow. Top of every step: progress bar (Step N of 9), step title, facilitator-style intro paragraph quoted from the PDF, the PDF page thumbnail as a reference card the user can expand. Bottom of every step: Back / Save & continue / "I'll come back to this".
+
+```text
+Step 1  Welcome + Name              → confirms profile.display_name
+Step 2  Your Ideas                  → user_general_ideas + user_year_priorities(kind=priority_idea)
+Step 3  Your Now — scores           → user_checkins + user_pillar_scores (1–10 per pillar)
+Step 3b Your Now — reflection       → user_pillar_state.current_state + how_it_feels per pillar
+Step 4  Your Life (10+ yrs)         → workshop_sessions(date, age, important_people)
+                                      + 4 future-state lists per category
+                                      → composes user_life_vision.vision_text
+Step 5  Your Year + Mantra          → workshop_sessions.mantra
+                                      + user_year_priorities(kind=year_priority) per category
+Step 6  Your Why (7 levels)         → user_truth_statements (loops through chosen Priority Ideas;
+                                      uses existing AI coach edge function for the prompts)
+Step 7  Your Best Self Starts/Stops → user_best_self_habits
+Step 8  Your Month                  → user_month_actions + action_items + opens a user_cycles row
+Step 9  Recap + Next                → read-only summary, "Print my guide" (browser print CSS),
+                                      CTA to start daily journaling
+```
+
+Each step component lives in `src/components/workshop/steps/Step{N}*.tsx`. Shared chrome lives in `src/components/workshop/WorkshopShell.tsx`. State is loaded via a new `src/hooks/useWorkshop.ts` (TanStack Query) — no fetching from page components.
+
+`workshop_sessions.current_step` is the source of truth for "where am I" so a user (or later, a whole classroom) can resume mid-workshop on a different device. Autosave on blur for every text field, debounced 800ms; the bottom bar shows "Saved · 2s ago" and disables "Continue" only when a step has hard-required inputs (e.g. Step 3 requires all 7 scores).
+
+Routing:
+- `/guide` → if no `workshop_sessions` row, show landing splash with hero from `boundlessfarm.com` style and "Start the Boundless Life Guide" CTA + "Skip to the dashboard view" link.
+- `/guide/step/:n` → individual step.
+- `/guide/recap` → Step 9 view (also linkable from BottomNav).
+
+## D. Facilitator hooks left in place for the next round
+
+We add but don't surface:
+- `workshop_sessions.cohort_id` (nullable FK to `cohort_members.coach_id`)
+- a `workshop_step_completions` table (`workshop_session_id`, `step`, `completed_at`)
+
+so when we add the facilitator view we can already query "show me everyone in cohort X who's still on Step 4" without another migration.
+
+## E. Things touched downstream
+
+- BottomNav / DesktopNav: "Guide" stays in the same slot, label stays "The Guide".
+- AI Coach prompt (`supabase/functions/boundless-coach/index.ts`): pull from the new "Best Self habits" and "Month actions" tables when composing context.
+- /actions: source from `action_items` (already does), but tag workshop-originated items with a small "🌾 from workshop" badge.
+- Pulse radar chart: relabel Faculty→Friends, Freedom→Field.
+- `mem://features/...` notes for 7-Pillars-Pulse and AI-Coach updated to reflect new pillar names.
+
+## F. Out of scope (explicit)
+
+- Facilitator presenter view, classroom advance-the-room, realtime "X of 12 done" widget.
+- Editing the printed PDF / exporting a filled PDF (Step 9 uses browser print only).
+- Migrating historical Faculty/Freedom analytics charts beyond a label rename.
 
 ---
 
-### Phase 2 — AI Coach Depth (G5)
-**G5 — AI-led guided LCI**
-- New edge function `lci-guided-session` (separate from `boundless-coach`) that runs a state-machine prompt: Highs/Lows → Top Task R/Y/G review → re-run YOUR NOW → Year review → 5 new Top Tasks → "What do you need?".
-- Persists incremental state to a new `lci_guided_runs` table (`session_id`, `step`, `payload jsonb`) so a user can resume.
-- New route `/lci/guided/:id?` with a stepped chat UI (progress bar across the 6 steps).
-- On completion, materializes the run into a real `lci_sessions` + `lci_top_tasks` + `lci_highs_lows` row set — exact same shape as a manual LCI.
-- Add "Start guided LCI" CTA on `/lci/new`.
+## Order of execution
 
----
-
-### Phase 3 — Partner Nudges (G6)
-**G6 — Partner-aware weekly nudges**
-- Extend `nudge-engine` with a new job type `partner_weekly`.
-- Cron (existing scheduler): every Monday 09:00 user-local, for each accepted partnership, check whether the *other* partner has updated `lci_top_tasks` or logged a `user_weekly_resets` row in the past 7 days. If yes and the recipient hasn't checked in 5+ days, send a templated WhatsApp message.
-- Add `nudge_preferences.partner_nudges BOOLEAN DEFAULT true` toggle, surfaced in `/nudges`.
-
----
-
-### Phase 4 — RAG Pipeline (G1)
-Largest block. Splits into ingestion + retrieval.
-
-**G1a — Vector store**
-- Migration: enable `pgvector`, create `boundless_documents` (`id, title, source, content text, embedding vector(1536), metadata jsonb`), with HNSW index on `embedding`.
-- RLS: read-only to all `authenticated`; write only to `admin` role.
-
-**G1b — Ingestion**
-- Edge function `rag-ingest` (admin-only, `getUser` + role check). Accepts `{title, content, source}`, chunks (~800 tokens, 100 overlap), embeds via Lovable AI Gateway (`google/text-embedding-004` or equivalent), inserts rows.
-- Bulk script: drop docs into `storage://boundless-corpus`; ingest function pulls and processes.
-
-**G1c — Retrieval wired into AI Coach + LCI summary + Assessment**
-- New shared util `_shared/rag.ts` for edge functions: `retrieve(query, k=5)` → top chunks → injected as system context.
-- Update `boundless-coach`, `boundless-assessment`, `lci-summary`, and the new `lci-guided-session` to call `retrieve()` and prepend the chunks to the system prompt.
-
----
-
-### Phase 5 — Admin CMS (G2)
-**G2 — Framework content management**
-- New route `/admin` (admin role only).
-- CRUD UI for: `boundless_documents` (corpus), curated "Year priority templates", "Vision exercises", and AI prompt fragments (new `framework_content` table: `slug, title, body, kind, version, is_active`).
-- Surface active framework copy in `/guide` (vision exercise text, year-priority prompts) instead of hard-coded strings — read via a `useFrameworkContent(slug)` hook.
-- Versioning: keep prior versions, flip `is_active` atomically.
-
----
-
-### Phase 6 — Enterprise Cohort Dashboard (G7)
-**G7 — Anonymized HR/enterprise view**
-- New `organizations` table (`id, name, plan`) and `organization_members` (`org_id, user_id, role`).
-- Backfill: link `coaches.organization` text into a real `org_id`.
-- New route `/org` (role: `org_admin`, new app_role).
-- Edge function `org-analytics` aggregates anonymized data across `organization_members`:
-  - Average pillar scores per pillar over 12 weeks.
-  - Distribution of LCI Top Task R/Y/G.
-  - Engagement: % with weekly reset in last 7 days, % with active 30-Day Cycle.
-  - Cohort drift alerts (e.g., Field score down >1.0 over 4 weeks).
-- Dashboard UI: 7-pillar trend chart, engagement KPIs, drift-alert feed. Strict aggregation — never expose individual rows.
-- Add `org_admin` to `app_role` enum and to `user_roles`.
-
----
-
-## Cross-Cutting Tasks
-- Update `mem://index.md` Memories with new feature files for: guided-LCI, RAG pipeline, evening reflection, partner nudges, org dashboard.
-- Add tests in `src/test/` for the cycle-day trigger, partner-nudge eligibility, and RAG retrieval shape.
-- Document each new edge function in its own `README.md`.
-
-## Suggested Execution Order
-1. **Phase 1** (Daily Loop) — fastest user-visible win, no AI dependencies.
-2. **Phase 4** (RAG) — unlocks AI quality everywhere downstream.
-3. **Phase 2** (Guided LCI) — depends on Phase 4 for best output.
-4. **Phase 3** (Partner Nudges) — small, isolated.
-5. **Phase 5** (Admin CMS) — needed to maintain RAG corpus at scale.
-6. **Phase 6** (Enterprise Dashboard) — last; requires org model and most data accumulated.
-
-## Out of Scope
-- Native mobile apps, payments, marketing site, SSO, formal SOC2 work — none are gaps against the proposal as-scoped.
+1. Migration: add `workshop_sessions`, `user_best_self_habits`, `user_month_actions`, `user_general_ideas`, `workshop_step_completions`, `user_year_priorities.kind`, RLS, triggers.
+2. Data update: remap `Faculty/Freedom` and `Being/Relating/Doing/Having` rows.
+3. Code rename of pillars + year categories across the app.
+4. `useWorkshop` hook + `WorkshopShell`.
+5. Steps 1 → 9 (each is a small file, built in order, validated in the preview after each).
+6. Replace `/guide` page to delegate to the wizard; keep old summary blocks as Step 9 recap content.
+7. AI Coach + Pulse downstream tweaks, mem updates.
