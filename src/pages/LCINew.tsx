@@ -213,7 +213,7 @@ const LCINewPage = () => {
       navigate('/lci');
     } catch (e) {
       console.error(e);
-      toast.error('Failed to save LCI');
+      toast.error('Failed to save Life Check In');
     } finally {
       setSaving(false);
     }
