@@ -457,6 +457,39 @@ export type Database = {
           },
         ]
       }
+      nudge_inbound_log: {
+        Row: {
+          captured_to: string | null
+          id: string
+          matched_intent: string | null
+          matched_outbound_id: string | null
+          message_body: string
+          phone_number: string
+          received_at: string
+          user_id: string | null
+        }
+        Insert: {
+          captured_to?: string | null
+          id?: string
+          matched_intent?: string | null
+          matched_outbound_id?: string | null
+          message_body: string
+          phone_number: string
+          received_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          captured_to?: string | null
+          id?: string
+          matched_intent?: string | null
+          matched_outbound_id?: string | null
+          message_body?: string
+          phone_number?: string
+          received_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       nudge_log: {
         Row: {
           id: string
@@ -664,11 +697,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cycles: {
+        Row: {
+          created_at: string
+          ended_on: string | null
+          id: string
+          started_on: string
+          status: string
+          target_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_on?: string | null
+          id?: string
+          started_on?: string
+          status?: string
+          target_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_on?: string | null
+          id?: string
+          started_on?: string
+          status?: string
+          target_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_journal_entries: {
         Row: {
           created_at: string
+          cycle_day: number | null
           daily_rating: number
           entry_date: string
+          evening_completed_at: string | null
+          evening_reflection: string | null
           gratitude_1: string | null
           gratitude_2: string | null
           gratitude_3: string | null
@@ -680,8 +749,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          cycle_day?: number | null
           daily_rating?: number
           entry_date?: string
+          evening_completed_at?: string | null
+          evening_reflection?: string | null
           gratitude_1?: string | null
           gratitude_2?: string | null
           gratitude_3?: string | null
@@ -693,8 +765,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          cycle_day?: number | null
           daily_rating?: number
           entry_date?: string
+          evening_completed_at?: string | null
+          evening_reflection?: string | null
           gratitude_1?: string | null
           gratitude_2?: string | null
           gratitude_3?: string | null
