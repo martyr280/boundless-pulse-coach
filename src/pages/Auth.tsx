@@ -179,7 +179,7 @@ const AuthPage = () => {
           <img
             src="/boundless-logo-light.png"
             alt="Boundless Farm"
-            className="h-20 w-auto"
+            className="h-16 lg:h-20 w-auto max-w-[240px] object-contain self-start"
           />
           <div className="space-y-6 max-w-md">
             <SectionEyebrow>It's time to pursue</SectionEyebrow>
