@@ -128,20 +128,41 @@ const AuthPage = () => {
   const handleMagicLink = async () => {
     const emailParse = z.string().trim().email().safeParse(email);
     if (!emailParse.success) {
-      toast.error('Enter your email first, then tap "Email me a magic link"');
+      toast.error('Enter your email first, then tap the magic link button');
       return;
     }
+    const isSignup = mode === 'signup';
     setSubmitting(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: emailParse.data,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          shouldCreateUser: false,
+          shouldCreateUser: isSignup,
+          data: isSignup && displayName ? { display_name: displayName } : undefined,
         },
       });
-      if (error) throw error;
-      toast.success('Magic link sent. Check your email to sign in.');
+      if (error) {
+        const msg = (error.message || '').toLowerCase();
+        // User typed an email we don't have on file in sign-in mode.
+        if (
+          !isSignup &&
+          (msg.includes('not found') ||
+            msg.includes('signups not allowed') ||
+            msg.includes('user not found') ||
+            msg.includes('not allowed for otp'))
+        ) {
+          toast.error("We don't have an account for that email. Switch to Sign up and try again.");
+          setMode('signup');
+          return;
+        }
+        throw error;
+      }
+      toast.success(
+        isSignup
+          ? 'Magic sign-up link sent. Check your email to finish creating your account.'
+          : 'Magic link sent. Check your email to sign in.',
+      );
     } catch (err: any) {
       toast.error(err.message || 'Could not send magic link');
     } finally {
