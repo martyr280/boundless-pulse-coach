@@ -29,6 +29,30 @@ const ProtectedRoute = ({
   const loggedRef = useRef<string | null>(null);
   const { data: profile, isLoading: profileLoading } = useProfile();
 
+  // Compute role requirements up-front so all hooks are called unconditionally.
+  const required: AppRole[] = allowedRoles
+    ? [...allowedRoles]
+    : requireAdmin
+      ? ['admin']
+      : requireCoach
+        ? ['coach', 'admin']
+        : [];
+
+  const denied =
+    !!session && required.length > 0 && !rolesLoading && !hasRole(required) && !isAdmin;
+
+  useEffect(() => {
+    if (!denied) return;
+    const key = `${location.pathname}|${required.join(',')}`;
+    if (loggedRef.current === key) return;
+    loggedRef.current = key;
+    logAccessDenied({
+      route: location.pathname,
+      requiredRoles: required,
+      userRoles: roles,
+    });
+  }, [denied, location.pathname, required, roles]);
+
   // 1. Wait for initial auth check.
   if (loading) {
     return (
@@ -57,15 +81,6 @@ const ProtectedRoute = ({
     }
   }
 
-  // 3. Build effective required roles.
-  const required: AppRole[] = allowedRoles
-    ? [...allowedRoles]
-    : requireAdmin
-      ? ['admin']
-      : requireCoach
-        ? ['coach', 'admin']
-        : [];
-
   // 4. If a role check is required, wait for roles to load before deciding.
   if (required.length > 0 && rolesLoading) {
     return (
@@ -74,21 +89,6 @@ const ProtectedRoute = ({
       </div>
     );
   }
-
-  // 5. Enforce role → redirect to dedicated /access-denied page.
-  const denied = required.length > 0 && !hasRole(required) && !isAdmin;
-
-  useEffect(() => {
-    if (!denied) return;
-    const key = `${location.pathname}|${required.join(',')}`;
-    if (loggedRef.current === key) return; // dedupe per mount
-    loggedRef.current = key;
-    logAccessDenied({
-      route: location.pathname,
-      requiredRoles: required,
-      userRoles: roles,
-    });
-  }, [denied, location.pathname, required, roles]);
 
   if (denied) {
     return (
