@@ -19,6 +19,7 @@ import Onboarding from '@/pages/Onboarding';
 import Profile from '@/pages/Profile';
 import Partner from '@/pages/Partner';
 import Admin from '@/pages/Admin';
+import AdminUsers from '@/pages/AdminUsers';
 
 export interface ProtectedRouteConfig {
   path: string;
@@ -71,5 +72,11 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
     component: Admin,
     allowedRoles: ['admin'],
     label: 'Admin CMS',
+  },
+  {
+    path: '/admin/users',
+    component: AdminUsers,
+    allowedRoles: ['admin'],
+    label: 'Admin Users',
   },
 ];
