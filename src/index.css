@@ -77,16 +77,17 @@
 
 @layer components {
   .h-display {
-    @apply font-black uppercase leading-[0.95];
-    letter-spacing: 0.04em;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    @apply font-semibold leading-[1.02];
+    letter-spacing: -0.005em;
     text-wrap: balance;
   }
 
   .h-quote {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant Garamond', Georgia, serif;
     font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    letter-spacing: -0.005em;
   }
 
   .eyebrow {
