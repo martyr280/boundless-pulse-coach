@@ -235,9 +235,18 @@ const LCINewPage = () => {
         <ClipboardList className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-extrabold">New LCI</h1>
       </div>
-      <p className="text-muted-foreground text-sm mb-6">
+      <p className="text-muted-foreground text-sm mb-4">
         Catch up, align, connect, and decide the top tasks for the next period.
       </p>
+
+      <button
+        onClick={() => navigate('/lci/guided')}
+        className="w-full mb-6 rounded-2xl border border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors px-4 py-3 text-left"
+      >
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">New · AI-Guided</p>
+        <p className="text-sm font-semibold mt-1">Let the Boundless Coach walk you through it</p>
+        <p className="text-xs text-muted-foreground mt-1">A stepped conversation that materializes into a real LCI.</p>
+      </button>
 
       {/* Quick Pulse re-assessment */}
       <Collapsible open={pulseOpen} onOpenChange={setPulseOpen} className="mb-4">

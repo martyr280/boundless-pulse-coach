@@ -154,6 +154,42 @@ export type Database = {
           },
         ]
       }
+      boundless_documents: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          created_by: string | null
+          embedding: string | null
+          id: string
+          metadata: Json
+          source: string
+          title: string
+        }
+        Insert: {
+          chunk_index?: number
+          content: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source: string
+          title: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+          source?: string
+          title?: string
+        }
+        Relationships: []
+      }
       coach_insights: {
         Row: {
           body: string
@@ -361,6 +397,42 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+        }
+        Relationships: []
+      }
+      lci_guided_runs: {
+        Row: {
+          created_at: string
+          id: string
+          materialized_session_id: string | null
+          messages: Json
+          payload: Json
+          status: string
+          step: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          materialized_session_id?: string | null
+          messages?: Json
+          payload?: Json
+          status?: string
+          step?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          materialized_session_id?: string | null
+          messages?: Json
+          payload?: Json
+          status?: string
+          step?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1092,6 +1164,21 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_boundless_documents: {
+        Args: {
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          content: string
+          id: string
+          metadata: Json
+          similarity: number
+          source: string
+          title: string
+        }[]
       }
     }
     Enums: {

@@ -9,6 +9,7 @@ import Nudges from '@/pages/Nudges';
 import CoachDashboard from '@/pages/CoachDashboard';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
+import LCIGuided from '@/pages/LCIGuided';
 import Actions from '@/pages/Actions';
 import Weekly from '@/pages/Weekly';
 import Guide from '@/pages/Guide';
@@ -43,7 +44,9 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
   { path: '/correlations',component: Correlations,   label: 'Correlations' },
   { path: '/nudges',      component: Nudges,         label: 'Nudges' },
   { path: '/lci',         component: LCI,            label: 'LCI' },
-  { path: '/lci/new',     component: LCINew,         label: 'New LCI' },
+  { path: '/lci/new',         component: LCINew,         label: 'New LCI' },
+  { path: '/lci/guided',      component: LCIGuided,      label: 'Guided LCI' },
+  { path: '/lci/guided/:id',  component: LCIGuided,      label: 'Guided LCI' },
   { path: '/actions',     component: Actions,        label: 'Actions' },
 
   // Coach / admin only

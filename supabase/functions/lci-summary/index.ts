@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { retrieve, formatContext } from "../_shared/rag.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,6 +94,15 @@ serve(async (req) => {
       })),
     };
 
+    // RAG: pull Boundless coaching frameworks relevant to this worksheet's themes
+    const ragQuery = [
+      session.year_review ?? "",
+      session.help_needed ?? "",
+      ...(payload.top_tasks ?? []).map((t: any) => `${t.title} ${t.feel ?? ""} ${t.obstacles ?? ""}`),
+    ].join(" ").slice(0, 1500);
+    const chunks = ragQuery.trim() ? await retrieve(ragQuery, { k: 4 }) : [];
+    const groundedSystem = SYSTEM_PROMPT + formatContext(chunks);
+
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -102,7 +112,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: groundedSystem },
           { role: "user", content: `LCI worksheet:\n${JSON.stringify(payload, null, 2)}` },
         ],
       }),
