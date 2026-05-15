@@ -35,6 +35,14 @@ Deno.serve(async (req) => {
     }
     const { session_id } = parsed.data;
 
+    // Feature flag — set COACH_LCI_NOTIFICATIONS_ENABLED to "false" to disable.
+    const flag = (Deno.env.get("COACH_LCI_NOTIFICATIONS_ENABLED") ?? "true").toLowerCase();
+    if (flag === "false" || flag === "0" || flag === "off") {
+      return new Response(JSON.stringify({ ok: true, skipped: "disabled_by_flag" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
