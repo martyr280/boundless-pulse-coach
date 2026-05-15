@@ -252,6 +252,10 @@ const Index = () => {
               </CardContent>
             </CinematicCard>
           )}
+
+          <div className="mt-6">
+            <EveningReflection />
+          </div>
         </TabsContent>
 
         <TabsContent value="history" className="mt-0">
