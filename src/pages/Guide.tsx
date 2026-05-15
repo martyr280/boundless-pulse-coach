@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus, X, Loader2, ArrowLeft, ArrowRight, Sparkles, Printer, Download,
-  Check, BookOpen,
+  Check, BookOpen, Pencil, LayoutGrid,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -88,6 +88,87 @@ const STEP_TITLES: Record<number, { eyebrow: string; title: string; intro: strin
 
 const RECAP_STEP = TOTAL_STEPS + 1; // step 10 = recap
 
+// ---------------- Nav context ----------------
+
+interface GuideNav {
+  goStep: (n: number) => void;
+  goOverview: () => void;
+  filled: Record<number, boolean>;
+  currentStep: number;
+}
+const GuideNavContext = createContext<GuideNav | null>(null);
+const useGuideNav = () => useContext(GuideNavContext);
+
+function useFilledSteps(): Record<number, boolean> {
+  const { data: profile } = useProfile();
+  const { data: ideas = [] } = useGeneralIdeas();
+  const { data: priorities = [] } = useYearPriorities();
+  const { data: states = [] } = usePillarStates();
+  const { data: vision } = useLifeVision();
+  const { data: whys = [] } = useWhyStatements();
+  const { data: habits = [] } = useBestSelfHabits();
+  const { data: actions = [] } = useMonthActions();
+
+  let visionGrid: Record<string, string> = {};
+  try { visionGrid = JSON.parse(vision?.vision_text || '{}').grid ?? {}; } catch { /* */ }
+
+  return {
+    1: !!profile?.display_name,
+    2: ideas.length > 0 || priorities.some((p) => (p as any).kind === 'priority_idea'),
+    3: states.length > 0, // checkin proxy: pillar states exist after step 4 too — refine via checkin if needed
+    4: states.some((s) => (s.current_state || '').trim() || (s.future_state || '').trim()),
+    5: Object.values(visionGrid).some((v) => (v as string)?.trim()),
+    6: priorities.some((p) => !(p as any).kind || (p as any).kind === 'year_priority'),
+    7: whys.length > 0,
+    8: habits.length > 0,
+    9: actions.length > 0,
+  };
+}
+
+function StepIndexRail() {
+  const nav = useGuideNav();
+  if (!nav) return null;
+  return (
+    <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => {
+        const isCurrent = nav.currentStep === n;
+        const isFilled = nav.filled[n];
+        return (
+          <button
+            key={n}
+            onClick={() => nav.goStep(n)}
+            title={STEP_TITLES[n]?.title}
+            className={[
+              'shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors',
+              isCurrent
+                ? 'bg-primary text-primary-foreground border-primary'
+                : isFilled
+                  ? 'border-primary/40 text-foreground bg-primary/10 hover:bg-primary/20'
+                  : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+            ].join(' ')}
+          >
+            <span className={[
+              'h-4 w-4 inline-flex items-center justify-center rounded-full text-[9px]',
+              isCurrent ? 'bg-primary-foreground/20' : isFilled ? 'bg-primary/30' : 'bg-muted/60',
+            ].join(' ')}>
+              {isFilled && !isCurrent ? <Check className="h-2.5 w-2.5" /> : n}
+            </span>
+            <span className="hidden md:inline">{STEP_TITLES[n]?.title.replace(/^\(?Y\)?our\s*/i, '')}</span>
+          </button>
+        );
+      })}
+      <button
+        onClick={() => nav.goOverview()}
+        className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/40 ml-1"
+        title="Overview"
+      >
+        <LayoutGrid className="h-3 w-3" />
+        <span className="hidden md:inline">Overview</span>
+      </button>
+    </div>
+  );
+}
+
 // ---------------- Shell ----------------
 
 function WorkshopShell({
@@ -105,6 +186,7 @@ function WorkshopShell({
   const pct = Math.round((step / TOTAL_STEPS) * 100);
   return (
     <div className="space-y-6">
+      <StepIndexRail />
       <div className="space-y-3">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="eyebrow">{meta?.eyebrow}</span>
@@ -781,7 +863,30 @@ function Step9YourMonth({ onBack, onFinish }: { onBack: () => void; onFinish: ()
 
 // ---------------- Recap ----------------
 
-function Recap({ onRestart }: { onRestart: () => void }) {
+function SectionHeader({ title, step, onJump }: { title: string; step: number; onJump?: (n: number) => void }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="h-display text-lg">{title}</h3>
+      {onJump && (
+        <Button variant="ghost" size="sm" className="h-7 text-[11px] print:hidden" onClick={() => onJump(step)}>
+          <Pencil className="h-3 w-3 mr-1" /> Edit
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function EmptyHint({ step, label, onJump }: { step: number; label: string; onJump?: (n: number) => void }) {
+  return (
+    <p className="text-xs italic text-muted-foreground/70">
+      Nothing here yet — {onJump ? (
+        <button onClick={() => onJump(step)} className="underline underline-offset-2 hover:text-primary">{label}</button>
+      ) : label}
+    </p>
+  );
+}
+
+function Recap({ onRestart, onJump }: { onRestart: () => void; onJump?: (n: number) => void }) {
   const { data: profile } = useProfile();
   const { data: vision } = useLifeVision();
   const { data: priorities = [] } = useYearPriorities();
@@ -796,6 +901,9 @@ function Recap({ onRestart }: { onRestart: () => void }) {
 
   let visionGrid: Record<string, string> = {};
   try { visionGrid = JSON.parse(vision?.vision_text || '{}').grid ?? {}; } catch { /* */ }
+
+  const priorityIdeas = priorities.filter((p) => (p as any).kind === 'priority_idea');
+  const yearPriorities = priorities.filter((p) => !(p as any).kind || (p as any).kind === 'year_priority');
 
   async function downloadPdf() {
     const node = document.getElementById('guide-recap');
@@ -828,7 +936,7 @@ function Recap({ onRestart }: { onRestart: () => void }) {
     <div id="guide-recap" className="space-y-6 print:space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <SectionEyebrow>RECAP</SectionEyebrow>
+          <SectionEyebrow>OVERVIEW</SectionEyebrow>
           <h1 className="h-display text-3xl md:text-4xl">{profile?.display_name ?? 'Your'} Boundless Life Guide</h1>
           {session?.mantra && <p className="font-serif-italic text-lg text-primary mt-2">"{session.mantra}"</p>}
         </div>
@@ -840,57 +948,82 @@ function Recap({ onRestart }: { onRestart: () => void }) {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" /> Print
           </Button>
-          <Button variant="ghost" size="sm" onClick={onRestart}>Edit</Button>
+          <Button variant="ghost" size="sm" onClick={onRestart}>Restart</Button>
         </div>
       </div>
 
-      {ideas.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-2">Ideas</h3>
-          <ul className="text-sm space-y-1">
-            {ideas.map((i) => <li key={i.id}>• {i.idea_text}</li>)}
-          </ul>
-        </CinematicCard>
-      )}
-
       <CinematicCard className="p-5">
-        <h3 className="h-display text-lg mb-3">Your Now — pillar reflections</h3>
-        <div className="grid gap-3 md:grid-cols-2">
-          {states.map((s) => (
-            <div key={s.id} className="text-sm space-y-1">
-              <p className="font-semibold">{s.pillar}</p>
-              {s.current_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Now:</span> {s.current_state}</p>}
-              {s.future_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Feels:</span> {s.future_state}</p>}
+        <SectionHeader title="Ideas" step={2} onJump={onJump} />
+        {ideas.length === 0 && priorityIdeas.length === 0 ? (
+          <EmptyHint step={2} label="capture an idea" onJump={onJump} />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 text-sm">
+            <div>
+              <p className="eyebrow text-[10px] text-muted-foreground mb-1">General</p>
+              {ideas.length === 0 ? <p className="text-xs italic text-muted-foreground/60">None</p> : (
+                <ul className="space-y-1">{ideas.map((i) => <li key={i.id}>• {i.idea_text}</li>)}</ul>
+              )}
             </div>
-          ))}
-        </div>
+            <div>
+              <p className="eyebrow text-[10px] text-muted-foreground mb-1">Priority</p>
+              {priorityIdeas.length === 0 ? <p className="text-xs italic text-muted-foreground/60">None</p> : (
+                <ul className="space-y-1">{priorityIdeas.map((p) => (
+                  <li key={p.id}><Badge variant="outline" className="text-[9px] py-0 h-4 mr-1">{p.category}</Badge>{p.priority_text}</li>
+                ))}</ul>
+              )}
+            </div>
+          </div>
+        )}
       </CinematicCard>
 
-      {Object.values(visionGrid).some((v) => (v as string)?.trim()) && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Life — 10+ years from now</h3>
-          {session?.future_self_date && (
-            <p className="text-xs text-muted-foreground mb-3">
-              {session.future_self_date}{session.future_self_age ? ` · age ${session.future_self_age}` : ''}
-            </p>
-          )}
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Now — pillar reflections" step={4} onJump={onJump} />
+        {states.length === 0 ? (
+          <EmptyHint step={4} label="reflect on each pillar" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {YEAR_CATEGORIES.map((c) => visionGrid[c] ? (
-              <div key={c}>
-                <p className="font-semibold text-sm">{c}</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{visionGrid[c]}</p>
+            {states.map((s) => (
+              <div key={s.id} className="text-sm space-y-1">
+                <p className="font-semibold">{s.pillar}</p>
+                {s.current_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Now:</span> {s.current_state}</p>}
+                {s.future_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Feels:</span> {s.future_state}</p>}
               </div>
-            ) : null)}
+            ))}
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {priorities.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Year</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Life — 10+ years from now" step={5} onJump={onJump} />
+        {!Object.values(visionGrid).some((v) => (v as string)?.trim()) ? (
+          <EmptyHint step={5} label="describe your future life" onJump={onJump} />
+        ) : (
+          <>
+            {session?.future_self_date && (
+              <p className="text-xs text-muted-foreground mb-3">
+                {session.future_self_date}{session.future_self_age ? ` · age ${session.future_self_age}` : ''}
+              </p>
+            )}
+            <div className="grid gap-3 md:grid-cols-2">
+              {YEAR_CATEGORIES.map((c) => visionGrid[c] ? (
+                <div key={c}>
+                  <p className="font-semibold text-sm">{c}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{visionGrid[c]}</p>
+                </div>
+              ) : null)}
+            </div>
+          </>
+        )}
+      </CinematicCard>
+
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Year" step={6} onJump={onJump} />
+        {yearPriorities.length === 0 ? (
+          <EmptyHint step={6} label="set this year's priorities" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {YEAR_CATEGORIES.map((c) => {
-              const list = priorities.filter((p) => p.category === c && (!(p as any).kind || (p as any).kind === 'year_priority'));
+              const list = yearPriorities.filter((p) => p.category === c);
               if (list.length === 0) return null;
               return (
                 <div key={c}>
@@ -902,24 +1035,26 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               );
             })}
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {whys.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Why</h3>
-          {whys.slice(0, 3).map((w) => (
-            <div key={w.id} className="mb-3">
-              <p className="text-xs text-muted-foreground">{w.priority}</p>
-              <p className="font-serif-italic text-base">"{w.statement}"</p>
-            </div>
-          ))}
-        </CinematicCard>
-      )}
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Why" step={7} onJump={onJump} />
+        {whys.length === 0 ? (
+          <EmptyHint step={7} label="work down the seven levels" onJump={onJump} />
+        ) : whys.slice(0, 3).map((w) => (
+          <div key={w.id} className="mb-3">
+            <p className="text-xs text-muted-foreground">{w.priority}</p>
+            <p className="font-serif-italic text-base">"{w.statement}"</p>
+          </div>
+        ))}
+      </CinematicCard>
 
-      {habits.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Best Self — Starts & Stops</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Best Self — Starts & Stops" step={8} onJump={onJump} />
+        {habits.length === 0 ? (
+          <EmptyHint step={8} label="list your starts & stops" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2 text-sm">
             <div>
               <p className="font-semibold">Starts</p>
@@ -934,12 +1069,14 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               </ul>
             </div>
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {actions.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Month — 30-day actions</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Month — 30-day actions" step={9} onJump={onJump} />
+        {actions.length === 0 ? (
+          <EmptyHint step={9} label="plan the next 30 days" onJump={onJump} />
+        ) : (
           <ul className="text-sm space-y-1">
             {actions.map((a) => (
               <li key={a.id}>
@@ -948,8 +1085,8 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               </li>
             ))}
           </ul>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
       <div className="flex gap-2 print:hidden">
         <Button onClick={() => navigate('/')}>Open my dashboard</Button>
@@ -961,8 +1098,18 @@ function Recap({ onRestart }: { onRestart: () => void }) {
 
 // ---------------- Landing splash ----------------
 
-function Landing({ onStart, hasSession }: { onStart: () => void; hasSession: boolean }) {
-  const navigate = useNavigate();
+function Landing({ onStart, hasSession, currentStep, completed, onOverview }: {
+  onStart: () => void;
+  hasSession: boolean;
+  currentStep: number;
+  completed: boolean;
+  onOverview: () => void;
+}) {
+  const primaryLabel = !hasSession
+    ? 'Begin the workshop'
+    : completed
+      ? 'Revisit the workshop'
+      : `Continue at step ${currentStep || 1}`;
   return (
     <div className="space-y-6">
       <HeroFrame
@@ -981,11 +1128,12 @@ function Landing({ onStart, hasSession }: { onStart: () => void; hasSession: boo
         <div className="flex flex-wrap gap-2">
           <Button onClick={onStart} size="lg">
             <BookOpen className="h-4 w-4 mr-2" />
-            {hasSession ? 'Continue the workshop' : 'Begin the workshop'}
+            {primaryLabel}
           </Button>
           {hasSession && (
-            <Button variant="outline" onClick={() => navigate('/guide?view=recap')}>
-              View my recap
+            <Button variant="outline" onClick={onOverview}>
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              {completed ? 'Open overview' : 'See overview'}
             </Button>
           )}
         </div>
@@ -1004,15 +1152,17 @@ const GuidePage = () => {
   const { data: session, isLoading } = useWorkshopSession();
   const start = useStartOrUpdateWorkshop();
   const markComplete = useMarkStepComplete();
+  const filled = useFilledSteps();
 
   const step = stepParam ? parseInt(stepParam, 10) : 0;
-  const isRecap = view === 'recap' || (session?.completed_at != null && step === 0);
+  const isOverview = view === 'overview' || view === 'recap';
 
   const goStep = (n: number) => {
-    if (n > TOTAL_STEPS) { setParams({ view: 'recap' }); return; }
+    if (n > TOTAL_STEPS) { setParams({ view: 'overview' }); return; }
     if (n < 1) { setParams({}); return; }
-    setParams({ step: n.toString() });
+    setParams({ view: 'workshop', step: n.toString() });
   };
+  const goOverview = () => setParams({ view: 'overview' });
 
   const handleNext = async (currentStep: number) => {
     try { await markComplete.mutateAsync(currentStep); } catch { /* non-fatal */ }
@@ -1035,39 +1185,80 @@ const GuidePage = () => {
     );
   }
 
+  const showTabs = step > 0 || isOverview;
+
+  const navValue: GuideNav = { goStep, goOverview, filled, currentStep: step };
+
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {isRecap ? (
-          <Recap onRestart={() => goStep(1)} />
-        ) : step === 0 ? (
-          <Landing onStart={beginWorkshop} hasSession={!!session} />
-        ) : step === 1 ? (
-          <Step1Welcome onNext={() => handleNext(1)} />
-        ) : step === 2 ? (
-          <Step2Ideas onBack={() => goStep(1)} onNext={() => handleNext(2)} />
-        ) : step === 3 ? (
-          <Step3Scores onBack={() => goStep(2)} onNext={() => handleNext(3)} />
-        ) : step === 4 ? (
-          <Step4Reflection onBack={() => goStep(3)} onNext={() => handleNext(4)} />
-        ) : step === 5 ? (
-          <Step5YourLife onBack={() => goStep(4)} onNext={() => handleNext(5)} />
-        ) : step === 6 ? (
-          <Step6YourYear onBack={() => goStep(5)} onNext={() => handleNext(6)} />
-        ) : step === 7 ? (
-          <Step7YourWhy onBack={() => goStep(6)} onNext={() => handleNext(7)} />
-        ) : step === 8 ? (
-          <Step8BestSelf onBack={() => goStep(7)} onNext={() => handleNext(8)} />
-        ) : step === 9 ? (
-          <Step9YourMonth onBack={() => goStep(8)} onFinish={async () => {
-            await markComplete.mutateAsync(9).catch(() => {});
-            setParams({ view: 'recap' });
-          }} />
-        ) : (
-          <Landing onStart={beginWorkshop} hasSession={!!session} />
-        )}
+    <GuideNavContext.Provider value={navValue}>
+      <div className="min-h-screen bg-background pb-32">
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+          {showTabs && (
+            <div className="flex items-center gap-1 print:hidden" data-print-hide>
+              <button
+                onClick={() => goStep(step > 0 ? step : (session?.current_step ?? 1))}
+                className={[
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border transition-colors',
+                  !isOverview ? 'bg-primary text-primary-foreground border-primary' : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+                ].join(' ')}
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Workshop
+              </button>
+              <button
+                onClick={goOverview}
+                className={[
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs border transition-colors',
+                  isOverview ? 'bg-primary text-primary-foreground border-primary' : 'border-border/60 text-muted-foreground hover:bg-muted/40',
+                ].join(' ')}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Overview
+              </button>
+            </div>
+          )}
+
+          {isOverview ? (
+            <Recap onRestart={() => goStep(1)} onJump={goStep} />
+          ) : step === 0 ? (
+            <Landing
+              onStart={beginWorkshop}
+              hasSession={!!session}
+              currentStep={session?.current_step ?? 1}
+              completed={!!session?.completed_at}
+              onOverview={goOverview}
+            />
+          ) : step === 1 ? (
+            <Step1Welcome onNext={() => handleNext(1)} />
+          ) : step === 2 ? (
+            <Step2Ideas onBack={() => goStep(1)} onNext={() => handleNext(2)} />
+          ) : step === 3 ? (
+            <Step3Scores onBack={() => goStep(2)} onNext={() => handleNext(3)} />
+          ) : step === 4 ? (
+            <Step4Reflection onBack={() => goStep(3)} onNext={() => handleNext(4)} />
+          ) : step === 5 ? (
+            <Step5YourLife onBack={() => goStep(4)} onNext={() => handleNext(5)} />
+          ) : step === 6 ? (
+            <Step6YourYear onBack={() => goStep(5)} onNext={() => handleNext(6)} />
+          ) : step === 7 ? (
+            <Step7YourWhy onBack={() => goStep(6)} onNext={() => handleNext(7)} />
+          ) : step === 8 ? (
+            <Step8BestSelf onBack={() => goStep(7)} onNext={() => handleNext(8)} />
+          ) : step === 9 ? (
+            <Step9YourMonth onBack={() => goStep(8)} onFinish={async () => {
+              await markComplete.mutateAsync(9).catch(() => {});
+              setParams({ view: 'overview' });
+            }} />
+          ) : (
+            <Landing
+              onStart={beginWorkshop}
+              hasSession={!!session}
+              currentStep={session?.current_step ?? 1}
+              completed={!!session?.completed_at}
+              onOverview={goOverview}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </GuideNavContext.Provider>
   );
 };
 
