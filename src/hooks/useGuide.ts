@@ -92,7 +92,7 @@ export function useCreateYearPriority() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { category: YearCategory; priority_text: string; year?: number; position?: number }) => {
+    mutationFn: async (input: { category: YearCategory; priority_text: string; year?: number; position?: number; kind?: 'year_priority' | 'priority_idea' }) => {
       if (!user) throw new Error('Not signed in');
       const { error } = await supabase.from('user_year_priorities').insert({
         user_id: user.id,
@@ -100,6 +100,7 @@ export function useCreateYearPriority() {
         priority_text: input.priority_text,
         year: input.year ?? new Date().getFullYear(),
         position: input.position ?? 0,
+        kind: input.kind ?? 'year_priority',
       });
       if (error) throw error;
     },
