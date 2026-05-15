@@ -1,71 +1,115 @@
-## Re-theme: Boundless.me visual overhaul
 
-Bring the app's look in line with boundless.me — cinematic mountain photography, deep charcoal canvas, burnt-orange burn highlights, ultra-wide-tracked uppercase display type, and a Playfair Display italic serif for human/quote moments. Scope is presentation only; no business logic, schema, or auth changes.
+## Goal
 
-### A. Design tokens (`src/index.css`, `tailwind.config.ts`)
+Close every gap between the Boundless AI Platform proposal and the current app. Items below are scoped to UI + data + edge functions already supported by the stack — no infrastructure changes.
 
-Refine the existing palette toward the site's actual sampled values and add depth tokens:
+## Gap Inventory
 
-- `--background` → `220 14% 7%` (deeper near-black charcoal)
-- `--card` → `220 12% 11%` with subtle warm tint
-- `--primary` (burnt orange) → `22 90% 52%` with `--primary-glow` `28 95% 60%`
-- `--accent-warm` → warm amber `35 85% 55%` for secondary highlights
-- New `--gradient-hero` (radial: charcoal → orange burn at edges, mimicking their hero)
-- New `--gradient-overlay` (top-to-bottom transparent → charcoal, for image overlays)
-- New `--shadow-cinematic` (large soft orange-tinted shadow for hero cards)
-- New `--shadow-elevated` (crisp neutral shadow for cards)
-- Border radius tightened: `--radius` → `1rem` (cards) with new `--radius-pill` for buttons
-- Add `font-serif` family in Tailwind config
+| # | Gap | Feature area |
+|---|---|---|
+| G1 | RAG pipeline grounded in Boundless IP (vector store + ingestion) | Guide Data Repository |
+| G2 | Admin CMS to push framework updates (vision/year/methodology content) | Guide Data Repository |
+| G3 | Evening reflection prompt + 30-Day Cycle tracking | Journaling |
+| G4 | Inbound WhatsApp reply → captured into journal | Journaling |
+| G5 | AI-led full LCI walk-through (guided session, not free chat) | Coaching |
+| G6 | Partner-aware weekly nudges ("partner updated their Top Tasks…") | Coaching |
+| G7 | Enterprise / HR aggregated cohort dashboard (anonymized trends) | Coaching |
 
-Add Tailwind utilities for `bg-gradient-hero`, `shadow-cinematic`, `text-balance`, and a `tracking-display` (0.18em).
+---
 
-### B. Typography (`src/index.css`)
+## Phased Plan
 
-- Keep Inter (400–900) for UI/body
-- Add Playfair Display (italic 400/500) for pull quotes, taglines, and emotional accents
-- Add reusable typography classes: `.h-display` (uppercase, `font-black`, `tracking-display`, balanced), `.h-quote` (Playfair italic), `.eyebrow` (small uppercase orange label like "IT'S TIME TO PURSUE")
+### Phase 1 — Daily Loop Completion (G3, G4)
+Smallest, highest-frequency wins. Strengthens the daily habit before layering anything new.
 
-### C. Reusable presentation components (new, `src/components/visual/`)
+**G3 — Evening reflection + 30-Day Cycle**
+- Add columns to `user_journal_entries`: `evening_reflection TEXT`, `evening_completed_at TIMESTAMPTZ`, `cycle_day INT`.
+- Add `user_cycles` table: `id, user_id, started_on date, ended_on date, target_days int default 30, status text`.
+- Trigger to auto-assign `cycle_day` on journal insert based on the user's active cycle.
+- `/guide` page: split into **Morning** and **Evening** cards. Evening card unlocks after a configurable hour (user timezone). Shows reflection prompt + completion check.
+- New `<CycleProgress>` strip on `/` and `/guide`: "Day 12 of 30 · 9 completed".
+- Hook: `useCurrentCycle()`.
 
-1. `HeroFrame.tsx` — full-bleed background image slot with gradient overlay, eyebrow + display headline + body + CTA. Used on Pulse top, Auth left panel, Coach hero.
-2. `CinematicCard.tsx` — card variant with warm border glow and subtle inner gradient.
-3. `PullQuote.tsx` — Playfair italic quote with orange quotation glyph and attribution.
-4. `SectionEyebrow.tsx` — small uppercase orange chip used to label sections.
-5. `MountainMark.tsx` — refined SVG mark replacing the lucide `Mountain` icon to match the site's triangular peak logo.
+**G4 — Inbound WhatsApp capture**
+- New edge function `whatsapp-inbound` (Twilio webhook, `verify_jwt = false`).
+- Maps `From:` E.164 → `nudge_preferences.phone_number` → `user_id`.
+- Looks at the last `nudge_log` entry sent to that user in the past 12h to determine intent (gratitude / habit / step / evening reflection) and writes the body into the matching column on today's `user_journal_entries` (upserted).
+- Logs to a new `nudge_inbound_log` table for audit.
+- Configure Twilio sandbox webhook URL in Connectors (instructions only — user action).
 
-### D. Imagery
+---
 
-Generate two reusable hero images (premium quality, no text):
+### Phase 2 — AI Coach Depth (G5)
+**G5 — AI-led guided LCI**
+- New edge function `lci-guided-session` (separate from `boundless-coach`) that runs a state-machine prompt: Highs/Lows → Top Task R/Y/G review → re-run YOUR NOW → Year review → 5 new Top Tasks → "What do you need?".
+- Persists incremental state to a new `lci_guided_runs` table (`session_id`, `step`, `payload jsonb`) so a user can resume.
+- New route `/lci/guided/:id?` with a stepped chat UI (progress bar across the 6 steps).
+- On completion, materializes the run into a real `lci_sessions` + `lci_top_tasks` + `lci_highs_lows` row set — exact same shape as a manual LCI.
+- Add "Start guided LCI" CTA on `/lci/new`.
 
-- `src/assets/hero-mountains.jpg` — wide cinematic mountain valley, golden-hour orange rim light, dark foreground (matches their hero)
-- `src/assets/hero-summit.jpg` — alpine ridgeline at dawn for Coach/Auth pages
+---
 
-### E. Page-level restructuring (presentation only)
+### Phase 3 — Partner Nudges (G6)
+**G6 — Partner-aware weekly nudges**
+- Extend `nudge-engine` with a new job type `partner_weekly`.
+- Cron (existing scheduler): every Monday 09:00 user-local, for each accepted partnership, check whether the *other* partner has updated `lci_top_tasks` or logged a `user_weekly_resets` row in the past 7 days. If yes and the recipient hasn't checked in 5+ days, send a templated WhatsApp message.
+- Add `nudge_preferences.partner_nudges BOOLEAN DEFAULT true` toggle, surfaced in `/nudges`.
 
-1. **`src/pages/Index.tsx` (Pulse)** — wrap top in `HeroFrame` with mountain background, eyebrow "YOUR MONTHLY PULSE", display headline, then radar card floats over the gradient seam. Replace icon with `MountainMark`. Quick-stats become `CinematicCard` trio.
-2. **`src/pages/Auth.tsx`** — split-screen: left = full-bleed mountain image with logo, eyebrow, display tagline ("A LIFE THAT FEELS LIKE YOURS") and a Playfair quote rotator; right = existing form on dark panel. Mobile collapses to stacked.
-3. **`src/pages/Coach.tsx`** — slim hero band with eyebrow + display title; chat surface in a `CinematicCard`.
-4. **`src/pages/CoachDashboard.tsx`** — header band gets eyebrow/display treatment; metric tiles become `CinematicCard`.
-5. **`src/components/BottomNav.tsx`** — refined active state (orange top-bar indicator + glow), tighter type, swap Pulse icon to `MountainMark`.
-6. **`src/pages/AccessDenied.tsx`, `NotFound.tsx`** — adopt `HeroFrame` + Playfair line for the message.
+---
 
-### F. Buttons & micro-interactions
+### Phase 4 — RAG Pipeline (G1)
+Largest block. Splits into ingestion + retrieval.
 
-- Primary button: warm orange → orange-glow gradient, pill radius, soft cinematic shadow, subtle hover lift (`translate-y-[-1px]`)
-- Add a `premium` variant via `cva` to `src/components/ui/button.tsx` (no breaking changes to existing variants)
-- Card hover: gentle border-color shift to `primary/40` + shadow grow
+**G1a — Vector store**
+- Migration: enable `pgvector`, create `boundless_documents` (`id, title, source, content text, embedding vector(1536), metadata jsonb`), with HNSW index on `embedding`.
+- RLS: read-only to all `authenticated`; write only to `admin` role.
 
-### G. Memory updates
+**G1b — Ingestion**
+- Edge function `rag-ingest` (admin-only, `getUser` + role check). Accepts `{title, content, source}`, chunks (~800 tokens, 100 overlap), embeds via Lovable AI Gateway (`google/text-embedding-004` or equivalent), inserts rows.
+- Bulk script: drop docs into `storage://boundless-corpus`; ingest function pulls and processes.
 
-- Update `mem://style/visual-identity` and `mem://design/typography` with the refined palette HSLs and the Playfair Display italic addition
-- Add new `mem://design/imagery` rule: cinematic mountain/golden-hour photography, dark foregrounds, orange rim light
+**G1c — Retrieval wired into AI Coach + LCI summary + Assessment**
+- New shared util `_shared/rag.ts` for edge functions: `retrieve(query, k=5)` → top chunks → injected as system context.
+- Update `boundless-coach`, `boundless-assessment`, `lci-summary`, and the new `lci-guided-session` to call `retrieve()` and prepend the chunks to the system prompt.
 
-### Out of scope
+---
 
-- No changes to data model, RLS, edge functions, routing config, or auth flow
-- No changes to LCI, CheckIn, Actions, Scanner, Nudges, Correlations content/logic (they'll inherit token + button changes automatically)
-- No copy rewrites beyond hero eyebrows/taglines on pages explicitly listed in §E
+### Phase 5 — Admin CMS (G2)
+**G2 — Framework content management**
+- New route `/admin` (admin role only).
+- CRUD UI for: `boundless_documents` (corpus), curated "Year priority templates", "Vision exercises", and AI prompt fragments (new `framework_content` table: `slug, title, body, kind, version, is_active`).
+- Surface active framework copy in `/guide` (vision exercise text, year-priority prompts) instead of hard-coded strings — read via a `useFrameworkContent(slug)` hook.
+- Versioning: keep prior versions, flip `is_active` atomically.
 
-### Validation
+---
 
-After implementation: visit `/`, `/auth`, `/coach`, `/coach-dashboard`, `/access-denied` in the preview, screenshot each, and confirm the cinematic palette + Playfair quote treatment renders correctly on desktop and the 390px mobile breakpoint.
+### Phase 6 — Enterprise Cohort Dashboard (G7)
+**G7 — Anonymized HR/enterprise view**
+- New `organizations` table (`id, name, plan`) and `organization_members` (`org_id, user_id, role`).
+- Backfill: link `coaches.organization` text into a real `org_id`.
+- New route `/org` (role: `org_admin`, new app_role).
+- Edge function `org-analytics` aggregates anonymized data across `organization_members`:
+  - Average pillar scores per pillar over 12 weeks.
+  - Distribution of LCI Top Task R/Y/G.
+  - Engagement: % with weekly reset in last 7 days, % with active 30-Day Cycle.
+  - Cohort drift alerts (e.g., Field score down >1.0 over 4 weeks).
+- Dashboard UI: 7-pillar trend chart, engagement KPIs, drift-alert feed. Strict aggregation — never expose individual rows.
+- Add `org_admin` to `app_role` enum and to `user_roles`.
+
+---
+
+## Cross-Cutting Tasks
+- Update `mem://index.md` Memories with new feature files for: guided-LCI, RAG pipeline, evening reflection, partner nudges, org dashboard.
+- Add tests in `src/test/` for the cycle-day trigger, partner-nudge eligibility, and RAG retrieval shape.
+- Document each new edge function in its own `README.md`.
+
+## Suggested Execution Order
+1. **Phase 1** (Daily Loop) — fastest user-visible win, no AI dependencies.
+2. **Phase 4** (RAG) — unlocks AI quality everywhere downstream.
+3. **Phase 2** (Guided LCI) — depends on Phase 4 for best output.
+4. **Phase 3** (Partner Nudges) — small, isolated.
+5. **Phase 5** (Admin CMS) — needed to maintain RAG corpus at scale.
+6. **Phase 6** (Enterprise Dashboard) — last; requires org model and most data accumulated.
+
+## Out of Scope
+- Native mobile apps, payments, marketing site, SSO, formal SOC2 work — none are gaps against the proposal as-scoped.

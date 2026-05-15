@@ -15,6 +15,8 @@ import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import MountainMark from '@/components/visual/MountainMark';
 import heroMountains from '@/assets/hero-mountains.jpg';
+import CycleProgress from '@/components/CycleProgress';
+import EveningReflection from '@/components/EveningReflection';
 
 const PILLAR_COLORS: Record<Pillar, string> = {
   Family: 'hsl(var(--primary))',
@@ -111,6 +113,8 @@ const Index = () => {
           Monthly Check-in
         </Button>
       </HeroFrame>
+
+      <CycleProgress className="mb-4" />
 
       <Tabs defaultValue="pulse" className="w-full">
         <TabsList className="grid grid-cols-2 w-full mb-4 bg-card/60 border border-border/60 rounded-full h-11 p-1">
@@ -248,6 +252,10 @@ const Index = () => {
               </CardContent>
             </CinematicCard>
           )}
+
+          <div className="mt-6">
+            <EveningReflection />
+          </div>
         </TabsContent>
 
         <TabsContent value="history" className="mt-0">
