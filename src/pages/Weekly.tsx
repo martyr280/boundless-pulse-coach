@@ -17,7 +17,7 @@ import {
 import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
-import heroSummit from '@/assets/hero-summit.jpg';
+import heroFarm from '@/assets/hero-farm.jpg';
 import { useCurrentCycle } from '@/hooks/useCurrentCycle';
 
 function formatWeekRange(weekStart: string): string {
@@ -92,7 +92,7 @@ const WeeklyPage = () => {
       </button>
 
       <HeroFrame
-        image={heroSummit}
+        image={heroFarm}
         eyebrow={<SectionEyebrow>{cycleActive ? `Your Daily Breakdown · Day ${cycle?.dayNumber} of ${cycle?.targetDays}` : 'Your Weekly Breakdown'}</SectionEyebrow>}
         title={
           showForm ? (

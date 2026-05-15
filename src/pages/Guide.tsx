@@ -16,7 +16,7 @@ import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import PullQuote from '@/components/visual/PullQuote';
-import heroMountains from '@/assets/hero-mountains.jpg';
+import heroForest from '@/assets/hero-forest.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import {
@@ -934,7 +934,7 @@ function Landing({ onStart, hasSession }: { onStart: () => void; hasSession: boo
   return (
     <div className="space-y-6">
       <HeroFrame
-        image={heroMountains}
+        image={heroForest}
         height="md"
         align="left"
         eyebrow={<SectionEyebrow>A LIFE WELL LIVED</SectionEyebrow>}

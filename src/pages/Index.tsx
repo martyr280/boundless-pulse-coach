@@ -14,7 +14,7 @@ import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import MountainMark from '@/components/visual/MountainMark';
-import heroMountains from '@/assets/hero-mountains.jpg';
+import heroForest from '@/assets/hero-forest.jpg';
 import CycleProgress from '@/components/CycleProgress';
 import EveningReflection from '@/components/EveningReflection';
 
@@ -97,7 +97,7 @@ const Index = () => {
 
       {/* Cinematic hero */}
       <HeroFrame
-        image={heroMountains}
+        image={heroForest}
         eyebrow={<SectionEyebrow>Your Monthly Pulse</SectionEyebrow>}
         title={<>Pursue a life <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">that feels like yours</span></>}
         subtitle="Track the seven pillars. Notice the gaps. Take one intentional step."
