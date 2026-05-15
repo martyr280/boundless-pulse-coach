@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { Loader2 } from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
@@ -30,6 +31,8 @@ const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pendingVerify, setPendingVerify] = useState(false);
+  const [otp, setOtp] = useState('');
 
   const from = (location.state as any)?.from || '/';
 
@@ -47,21 +50,54 @@ const AuthPage = () => {
     setSubmitting(true);
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: displayName || email.split('@')[0] },
-          },
+        const { data, error } = await supabase.functions.invoke('signup-with-verification', {
+          body: { email, password, display_name: displayName },
         });
-        if (error) throw error;
-        toast.success('Account created! Signing you in…');
+        if (error) throw new Error((data as any)?.error || error.message);
+        if ((data as any)?.error) throw new Error((data as any).error);
+        setPendingVerify(true);
+        toast.success('Check your email for a 6-digit verification code.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
     } catch (err: any) {
       toast.error(err.message || 'Authentication failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (code: string) => {
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email, code },
+      });
+      if (error) throw new Error((data as any)?.error || error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) throw signInErr;
+      toast.success('Email verified. Welcome to Boundless.');
+    } catch (err: any) {
+      toast.error(err.message || 'Verification failed');
+      setOtp('');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('signup-with-verification', {
+        body: { email, password, display_name: displayName },
+      });
+      if (error) throw new Error((data as any)?.error || error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success('New code sent.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not resend code');
     } finally {
       setSubmitting(false);
     }
@@ -180,54 +216,104 @@ const AuthPage = () => {
 
           <Card className="border-border/80 rounded-3xl bg-card/60 backdrop-blur shadow-elevated">
             <CardContent className="pt-6">
-              <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="mb-4">
-                <TabsList className="grid grid-cols-2 w-full rounded-full">
-                  <TabsTrigger value="signin" className="rounded-full">Sign in</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-full">Sign up</TabsTrigger>
-                </TabsList>
-                <TabsContent value="signin" />
-                <TabsContent value="signup" />
-              </Tabs>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                {mode === 'signup' && (
-                  <div>
-                    <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-[0.18em]">Name</Label>
-                    <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-                      className="rounded-xl mt-1" placeholder="Your name" />
+              {pendingVerify ? (
+                <div className="space-y-5">
+                  <div className="text-center space-y-2">
+                    <h3 className="h-display text-xl">Check your email</h3>
+                    <p className="text-sm text-muted-foreground">
+                      We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
+                    </p>
                   </div>
-                )}
-                <div>
-                  <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-[0.18em]">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                    className="rounded-xl mt-1" required />
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(v) => {
+                        setOtp(v);
+                        if (v.length === 6) handleVerify(v);
+                      }}
+                      disabled={submitting}
+                    >
+                      <InputOTPGroup>
+                        {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      variant="premium"
+                      className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                      disabled={submitting || otp.length !== 6}
+                      onClick={() => handleVerify(otp)}
+                    >
+                      {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Verify email
+                    </Button>
+                    <div className="flex justify-between text-xs">
+                      <button type="button" className="text-muted-foreground hover:text-foreground"
+                        onClick={() => { setPendingVerify(false); setOtp(''); }} disabled={submitting}>
+                        ← Use different email
+                      </button>
+                      <button type="button" className="text-primary hover:underline"
+                        onClick={handleResend} disabled={submitting}>
+                        Resend code
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
-                  <Input id="password" type="password" value={password}
-                    onChange={(e) => setPassword(e.target.value)} className="rounded-xl mt-1" required minLength={8} />
-                </div>
-                <Button
-                  type="submit"
-                  variant="premium"
-                  className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
-                  disabled={submitting}
-                >
-                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {mode === 'signup' ? 'Create account' : 'Sign in'}
-                </Button>
-              </form>
+              ) : (
+                <>
+                  <Tabs value={mode} onValueChange={(v) => setMode(v as any)} className="mb-4">
+                    <TabsList className="grid grid-cols-2 w-full rounded-full">
+                      <TabsTrigger value="signin" className="rounded-full">Sign in</TabsTrigger>
+                      <TabsTrigger value="signup" className="rounded-full">Sign up</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="signin" />
+                    <TabsContent value="signup" />
+                  </Tabs>
 
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-[0.22em]">
-                  <span className="bg-card px-3 text-muted-foreground">or</span>
-                </div>
-              </div>
-              <Button variant="outline" type="button" className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
-                onClick={handleGoogle} disabled={submitting}>
-                Continue with Google
-              </Button>
+                  <form onSubmit={handleSubmit} className="space-y-3">
+                    {mode === 'signup' && (
+                      <div>
+                        <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-[0.18em]">Name</Label>
+                        <Input id="name" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+                          className="rounded-xl mt-1" placeholder="Your name" />
+                      </div>
+                    )}
+                    <div>
+                      <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-[0.18em]">Email</Label>
+                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                        className="rounded-xl mt-1" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-[0.18em]">Password</Label>
+                      <Input id="password" type="password" value={password}
+                        onChange={(e) => setPassword(e.target.value)} className="rounded-xl mt-1" required minLength={8} />
+                    </div>
+                    <Button
+                      type="submit"
+                      variant="premium"
+                      className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                      disabled={submitting}
+                    >
+                      {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      {mode === 'signup' ? 'Create account' : 'Sign in'}
+                    </Button>
+                  </form>
+
+                  <div className="relative my-5">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+                    <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-[0.22em]">
+                      <span className="bg-card px-3 text-muted-foreground">or</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" type="button" className="w-full font-bold rounded-full h-11 uppercase tracking-[0.18em]"
+                    onClick={handleGoogle} disabled={submitting}>
+                    Continue with Google
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
