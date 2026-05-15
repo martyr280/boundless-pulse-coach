@@ -113,6 +113,8 @@ const Index = () => {
         </Button>
       </HeroFrame>
 
+      <CycleProgress className="mb-4" />
+
       <Tabs defaultValue="pulse" className="w-full">
         <TabsList className="grid grid-cols-2 w-full mb-4 bg-card/60 border border-border/60 rounded-full h-11 p-1">
           <TabsTrigger
