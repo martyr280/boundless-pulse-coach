@@ -18,6 +18,7 @@ import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import heroSummit from '@/assets/hero-summit.jpg';
+import { useCurrentCycle } from '@/hooks/useCurrentCycle';
 
 function formatWeekRange(weekStart: string): string {
   const start = new Date(weekStart + 'T00:00:00Z');
