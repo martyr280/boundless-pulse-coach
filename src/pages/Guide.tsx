@@ -197,26 +197,13 @@ function Step2Ideas({ onBack, onNext }: { onBack: () => void; onNext: () => void
   const addPriority = async () => {
     if (!prioDraft.trim()) return;
     try {
-      // Insert with kind='priority_idea'
-      const { error } = await (await import('@/integrations/supabase/client')).supabase
-        .from('user_year_priorities')
-        .insert({
-          user_id: (await import('@/integrations/supabase/client')).supabase.auth ? undefined : undefined,
-          category: prioCategory,
-          priority_text: prioDraft.trim(),
-          year: new Date().getFullYear(),
-          position: priorityIdeas.length,
-          kind: 'priority_idea',
-        } as never);
-      if (error) throw error;
+      await createPriority.mutateAsync({
+        category: prioCategory,
+        priority_text: prioDraft.trim(),
+        position: priorityIdeas.length,
+        kind: 'priority_idea',
+      });
       setPrioDraft('');
-      // refetch via createPriority's queryClient invalidation:
-      window.dispatchEvent(new CustomEvent('refetch-priorities'));
-      // simpler: directly call createPriority with a placeholder isn't right; use raw above and invalidate
-      await createPriority.mutateAsync({ category: prioCategory, priority_text: '__noop__' }).catch(() => {});
-      // Undo the noop insert
-      const { supabase } = await import('@/integrations/supabase/client');
-      await supabase.from('user_year_priorities').delete().eq('priority_text', '__noop__');
     } catch (e: any) {
       toast.error(e?.message || 'Could not save priority idea');
     }
