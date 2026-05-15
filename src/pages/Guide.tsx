@@ -863,7 +863,30 @@ function Step9YourMonth({ onBack, onFinish }: { onBack: () => void; onFinish: ()
 
 // ---------------- Recap ----------------
 
-function Recap({ onRestart }: { onRestart: () => void }) {
+function SectionHeader({ title, step, onJump }: { title: string; step: number; onJump?: (n: number) => void }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="h-display text-lg">{title}</h3>
+      {onJump && (
+        <Button variant="ghost" size="sm" className="h-7 text-[11px] print:hidden" onClick={() => onJump(step)}>
+          <Pencil className="h-3 w-3 mr-1" /> Edit
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function EmptyHint({ step, label, onJump }: { step: number; label: string; onJump?: (n: number) => void }) {
+  return (
+    <p className="text-xs italic text-muted-foreground/70">
+      Nothing here yet — {onJump ? (
+        <button onClick={() => onJump(step)} className="underline underline-offset-2 hover:text-primary">{label}</button>
+      ) : label}
+    </p>
+  );
+}
+
+function Recap({ onRestart, onJump }: { onRestart: () => void; onJump?: (n: number) => void }) {
   const { data: profile } = useProfile();
   const { data: vision } = useLifeVision();
   const { data: priorities = [] } = useYearPriorities();
@@ -878,6 +901,9 @@ function Recap({ onRestart }: { onRestart: () => void }) {
 
   let visionGrid: Record<string, string> = {};
   try { visionGrid = JSON.parse(vision?.vision_text || '{}').grid ?? {}; } catch { /* */ }
+
+  const priorityIdeas = priorities.filter((p) => (p as any).kind === 'priority_idea');
+  const yearPriorities = priorities.filter((p) => !(p as any).kind || (p as any).kind === 'year_priority');
 
   async function downloadPdf() {
     const node = document.getElementById('guide-recap');
@@ -910,7 +936,7 @@ function Recap({ onRestart }: { onRestart: () => void }) {
     <div id="guide-recap" className="space-y-6 print:space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <SectionEyebrow>RECAP</SectionEyebrow>
+          <SectionEyebrow>OVERVIEW</SectionEyebrow>
           <h1 className="h-display text-3xl md:text-4xl">{profile?.display_name ?? 'Your'} Boundless Life Guide</h1>
           {session?.mantra && <p className="font-serif-italic text-lg text-primary mt-2">"{session.mantra}"</p>}
         </div>
@@ -922,57 +948,82 @@ function Recap({ onRestart }: { onRestart: () => void }) {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" /> Print
           </Button>
-          <Button variant="ghost" size="sm" onClick={onRestart}>Edit</Button>
+          <Button variant="ghost" size="sm" onClick={onRestart}>Restart</Button>
         </div>
       </div>
 
-      {ideas.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-2">Ideas</h3>
-          <ul className="text-sm space-y-1">
-            {ideas.map((i) => <li key={i.id}>• {i.idea_text}</li>)}
-          </ul>
-        </CinematicCard>
-      )}
-
       <CinematicCard className="p-5">
-        <h3 className="h-display text-lg mb-3">Your Now — pillar reflections</h3>
-        <div className="grid gap-3 md:grid-cols-2">
-          {states.map((s) => (
-            <div key={s.id} className="text-sm space-y-1">
-              <p className="font-semibold">{s.pillar}</p>
-              {s.current_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Now:</span> {s.current_state}</p>}
-              {s.future_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Feels:</span> {s.future_state}</p>}
+        <SectionHeader title="Ideas" step={2} onJump={onJump} />
+        {ideas.length === 0 && priorityIdeas.length === 0 ? (
+          <EmptyHint step={2} label="capture an idea" onJump={onJump} />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 text-sm">
+            <div>
+              <p className="eyebrow text-[10px] text-muted-foreground mb-1">General</p>
+              {ideas.length === 0 ? <p className="text-xs italic text-muted-foreground/60">None</p> : (
+                <ul className="space-y-1">{ideas.map((i) => <li key={i.id}>• {i.idea_text}</li>)}</ul>
+              )}
             </div>
-          ))}
-        </div>
+            <div>
+              <p className="eyebrow text-[10px] text-muted-foreground mb-1">Priority</p>
+              {priorityIdeas.length === 0 ? <p className="text-xs italic text-muted-foreground/60">None</p> : (
+                <ul className="space-y-1">{priorityIdeas.map((p) => (
+                  <li key={p.id}><Badge variant="outline" className="text-[9px] py-0 h-4 mr-1">{p.category}</Badge>{p.priority_text}</li>
+                ))}</ul>
+              )}
+            </div>
+          </div>
+        )}
       </CinematicCard>
 
-      {Object.values(visionGrid).some((v) => (v as string)?.trim()) && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Life — 10+ years from now</h3>
-          {session?.future_self_date && (
-            <p className="text-xs text-muted-foreground mb-3">
-              {session.future_self_date}{session.future_self_age ? ` · age ${session.future_self_age}` : ''}
-            </p>
-          )}
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Now — pillar reflections" step={4} onJump={onJump} />
+        {states.length === 0 ? (
+          <EmptyHint step={4} label="reflect on each pillar" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {YEAR_CATEGORIES.map((c) => visionGrid[c] ? (
-              <div key={c}>
-                <p className="font-semibold text-sm">{c}</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{visionGrid[c]}</p>
+            {states.map((s) => (
+              <div key={s.id} className="text-sm space-y-1">
+                <p className="font-semibold">{s.pillar}</p>
+                {s.current_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Now:</span> {s.current_state}</p>}
+                {s.future_state && <p className="text-muted-foreground"><span className="text-[10px] uppercase tracking-wider">Feels:</span> {s.future_state}</p>}
               </div>
-            ) : null)}
+            ))}
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {priorities.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Year</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Life — 10+ years from now" step={5} onJump={onJump} />
+        {!Object.values(visionGrid).some((v) => (v as string)?.trim()) ? (
+          <EmptyHint step={5} label="describe your future life" onJump={onJump} />
+        ) : (
+          <>
+            {session?.future_self_date && (
+              <p className="text-xs text-muted-foreground mb-3">
+                {session.future_self_date}{session.future_self_age ? ` · age ${session.future_self_age}` : ''}
+              </p>
+            )}
+            <div className="grid gap-3 md:grid-cols-2">
+              {YEAR_CATEGORIES.map((c) => visionGrid[c] ? (
+                <div key={c}>
+                  <p className="font-semibold text-sm">{c}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{visionGrid[c]}</p>
+                </div>
+              ) : null)}
+            </div>
+          </>
+        )}
+      </CinematicCard>
+
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Year" step={6} onJump={onJump} />
+        {yearPriorities.length === 0 ? (
+          <EmptyHint step={6} label="set this year's priorities" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {YEAR_CATEGORIES.map((c) => {
-              const list = priorities.filter((p) => p.category === c && (!(p as any).kind || (p as any).kind === 'year_priority'));
+              const list = yearPriorities.filter((p) => p.category === c);
               if (list.length === 0) return null;
               return (
                 <div key={c}>
@@ -984,24 +1035,26 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               );
             })}
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {whys.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Why</h3>
-          {whys.slice(0, 3).map((w) => (
-            <div key={w.id} className="mb-3">
-              <p className="text-xs text-muted-foreground">{w.priority}</p>
-              <p className="font-serif-italic text-base">"{w.statement}"</p>
-            </div>
-          ))}
-        </CinematicCard>
-      )}
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Why" step={7} onJump={onJump} />
+        {whys.length === 0 ? (
+          <EmptyHint step={7} label="work down the seven levels" onJump={onJump} />
+        ) : whys.slice(0, 3).map((w) => (
+          <div key={w.id} className="mb-3">
+            <p className="text-xs text-muted-foreground">{w.priority}</p>
+            <p className="font-serif-italic text-base">"{w.statement}"</p>
+          </div>
+        ))}
+      </CinematicCard>
 
-      {habits.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Best Self — Starts & Stops</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Best Self — Starts & Stops" step={8} onJump={onJump} />
+        {habits.length === 0 ? (
+          <EmptyHint step={8} label="list your starts & stops" onJump={onJump} />
+        ) : (
           <div className="grid gap-3 md:grid-cols-2 text-sm">
             <div>
               <p className="font-semibold">Starts</p>
@@ -1016,12 +1069,14 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               </ul>
             </div>
           </div>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
-      {actions.length > 0 && (
-        <CinematicCard className="p-5">
-          <h3 className="h-display text-lg mb-3">Your Month — 30-day actions</h3>
+      <CinematicCard className="p-5">
+        <SectionHeader title="Your Month — 30-day actions" step={9} onJump={onJump} />
+        {actions.length === 0 ? (
+          <EmptyHint step={9} label="plan the next 30 days" onJump={onJump} />
+        ) : (
           <ul className="text-sm space-y-1">
             {actions.map((a) => (
               <li key={a.id}>
@@ -1030,8 +1085,8 @@ function Recap({ onRestart }: { onRestart: () => void }) {
               </li>
             ))}
           </ul>
-        </CinematicCard>
-      )}
+        )}
+      </CinematicCard>
 
       <div className="flex gap-2 print:hidden">
         <Button onClick={() => navigate('/')}>Open my dashboard</Button>
