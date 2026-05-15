@@ -805,7 +805,7 @@ function Recap({ onRestart }: { onRestart: () => void }) {
       const { default: html2pdf } = await import('html2pdf.js');
       const name = (profile?.display_name ?? 'Boundless').replace(/[^a-z0-9-_]+/gi, '_');
       const stamp = new Date().toISOString().slice(0, 10);
-      await html2pdf()
+      await (html2pdf() as any)
         .set({
           margin: [10, 10, 10, 10],
           filename: `${name}-Boundless-Life-Guide-${stamp}.pdf`,
