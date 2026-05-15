@@ -16,6 +16,7 @@ import Guide from '@/pages/Guide';
 import Onboarding from '@/pages/Onboarding';
 import Profile from '@/pages/Profile';
 import Partner from '@/pages/Partner';
+import Admin from '@/pages/Admin';
 
 export interface ProtectedRouteConfig {
   path: string;
@@ -55,5 +56,11 @@ export const protectedRoutes: ProtectedRouteConfig[] = [
     component: CoachDashboard,
     allowedRoles: ['coach', 'admin'],
     label: 'Coach Dashboard',
+  },
+  {
+    path: '/admin',
+    component: Admin,
+    allowedRoles: ['admin'],
+    label: 'Admin CMS',
   },
 ];

@@ -8,11 +8,13 @@ import {
   CalendarDays,
   BookOpen,
   Users,
+  Shield,
 } from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useProfile';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const tabs = [
+const baseTabs = [
   { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
@@ -42,6 +44,11 @@ const DesktopNav = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const { data: role } = useUserRole();
+
+  const tabs = role === 'admin'
+    ? [...baseTabs, { to: '/admin', icon: Shield, label: 'Admin' }]
+    : baseTabs;
 
   if (!session || location.pathname === '/auth' || location.pathname === '/onboarding')
     return null;

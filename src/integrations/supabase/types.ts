@@ -400,6 +400,48 @@ export type Database = {
         }
         Relationships: []
       }
+      framework_content: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          notes: string | null
+          slug: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          notes?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          notes?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       lci_guided_runs: {
         Row: {
           created_at: string
