@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Plus, X, Loader2, ArrowLeft, ArrowRight, Sparkles, Printer,
+  Plus, X, Loader2, ArrowLeft, ArrowRight, Sparkles, Printer, Download,
   Check, BookOpen,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -792,19 +792,51 @@ function Recap({ onRestart }: { onRestart: () => void }) {
   const { data: ideas = [] } = useGeneralIdeas();
   const { data: session } = useWorkshopSession();
   const navigate = useNavigate();
+  const [exporting, setExporting] = useState(false);
 
   let visionGrid: Record<string, string> = {};
   try { visionGrid = JSON.parse(vision?.vision_text || '{}').grid ?? {}; } catch { /* */ }
 
+  async function downloadPdf() {
+    const node = document.getElementById('guide-recap');
+    if (!node) return;
+    setExporting(true);
+    try {
+      const { default: html2pdf } = await import('html2pdf.js');
+      const name = (profile?.display_name ?? 'Boundless').replace(/[^a-z0-9-_]+/gi, '_');
+      const stamp = new Date().toISOString().slice(0, 10);
+      await (html2pdf() as any)
+        .set({
+          margin: [10, 10, 10, 10],
+          filename: `${name}-Boundless-Life-Guide-${stamp}.pdf`,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] },
+        })
+        .from(node)
+        .save();
+      toast.success('PDF downloaded');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Could not export PDF');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
-    <div className="space-y-6 print:space-y-3">
+    <div id="guide-recap" className="space-y-6 print:space-y-3">
       <div className="flex items-center justify-between">
         <div>
           <SectionEyebrow>RECAP</SectionEyebrow>
           <h1 className="h-display text-3xl md:text-4xl">{profile?.display_name ?? 'Your'} Boundless Life Guide</h1>
           {session?.mantra && <p className="font-serif-italic text-lg text-primary mt-2">"{session.mantra}"</p>}
         </div>
-        <div className="flex gap-2 print:hidden">
+        <div className="flex gap-2 print:hidden" data-print-hide>
+          <Button variant="premium" size="sm" onClick={downloadPdf} disabled={exporting}>
+            {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+            {exporting ? 'Generating…' : 'Download PDF'}
+          </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" /> Print
           </Button>
