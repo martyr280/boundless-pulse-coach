@@ -9,6 +9,7 @@ import {
   BookOpen,
   Users,
   Shield,
+  UserCog,
 } from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
@@ -53,7 +54,11 @@ const DesktopNav = () => {
 
   const baseTabs = buildBaseTabs(cycleActive);
   const tabs = role === 'admin'
-    ? [...baseTabs, { to: '/admin', icon: Shield, label: 'Admin' }]
+    ? [
+        ...baseTabs,
+        { to: '/admin', icon: Shield, label: 'Admin' },
+        { to: '/admin/users', icon: UserCog, label: 'Users' },
+      ]
     : baseTabs;
 
   if (!session || location.pathname === '/auth' || location.pathname === '/onboarding')
