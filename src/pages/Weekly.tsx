@@ -18,6 +18,7 @@ import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import heroSummit from '@/assets/hero-summit.jpg';
+import { useCurrentCycle } from '@/hooks/useCurrentCycle';
 
 function formatWeekRange(weekStart: string): string {
   const start = new Date(weekStart + 'T00:00:00Z');
@@ -37,6 +38,9 @@ const WeeklyPage = () => {
   const navigate = useNavigate();
   const { data: history = [], isLoading } = useWeeklyResets();
   const { data: currentWeek } = useCurrentWeekReset();
+  const { data: cycle } = useCurrentCycle();
+  const cycleActive = !!cycle?.cycle;
+  const cadenceLabel = cycleActive ? 'Daily' : 'Weekly';
   const upsert = useCreateOrUpdateWeeklyReset();
   const weekStart = getWeekStart();
 
@@ -89,15 +93,15 @@ const WeeklyPage = () => {
 
       <HeroFrame
         image={heroSummit}
-        eyebrow={<SectionEyebrow>Your Weekly Breakdown</SectionEyebrow>}
+        eyebrow={<SectionEyebrow>{cycleActive ? `Your Daily Breakdown · Day ${cycle?.dayNumber} of ${cycle?.targetDays}` : 'Your Weekly Breakdown'}</SectionEyebrow>}
         title={
           showForm ? (
-            <>How was <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">your week</span>?</>
+            <>How was <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">your {cycleActive ? 'day' : 'week'}</span>?</>
           ) : (
-            <>This week, <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">in summary</span></>
+            <>This {cycleActive ? 'day' : 'week'}, <span className="font-serif-italic font-normal normal-case tracking-normal text-primary">in summary</span></>
           )
         }
-        subtitle={showForm ? 'Rate each pillar 1–10 for the week' : formatWeekRange(weekStart)}
+        subtitle={showForm ? 'Rate each pillar 1–10' : formatWeekRange(weekStart)}
         height="md"
         align="left"
         className="mb-6"

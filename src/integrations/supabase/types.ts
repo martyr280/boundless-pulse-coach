@@ -1046,6 +1046,36 @@ export type Database = {
           },
         ]
       }
+      user_pillar_state: {
+        Row: {
+          created_at: string
+          current_state: string
+          future_state: string
+          id: string
+          pillar: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_state?: string
+          future_state?: string
+          id?: string
+          pillar: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_state?: string
+          future_state?: string
+          id?: string
+          pillar?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

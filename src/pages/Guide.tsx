@@ -18,10 +18,14 @@ import {
   useUpdateYearPriority,
   useDeleteYearPriority,
   useWhyStatements,
+  usePillarStates,
+  useUpsertPillarState,
   YEAR_CATEGORIES,
   type YearCategory,
   type YearPriority,
+  type PillarState,
 } from '@/hooks/useGuide';
+import { PILLARS, PILLAR_SUBTOPICS, type Pillar } from '@/lib/types';
 
 const CATEGORY_DESCRIPTIONS: Record<YearCategory, string> = {
   Being: 'Who you are becoming',
@@ -301,6 +305,114 @@ function WhySection() {
   );
 }
 
+// ---------- Current State / Future State ----------
+
+function PillarStateRow({ pillar, state }: { pillar: Pillar; state?: PillarState }) {
+  const upsert = useUpsertPillarState();
+  const [current, setCurrent] = useState(state?.current_state ?? '');
+  const [future, setFuture] = useState(state?.future_state ?? '');
+  const [hydrated, setHydrated] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef<{ c: string; f: string }>({
+    c: state?.current_state ?? '',
+    f: state?.future_state ?? '',
+  });
+
+  useEffect(() => {
+    if (!hydrated && state !== undefined) {
+      setCurrent(state?.current_state ?? '');
+      setFuture(state?.future_state ?? '');
+      lastSavedRef.current = {
+        c: state?.current_state ?? '',
+        f: state?.future_state ?? '',
+      };
+      setHydrated(true);
+    }
+  }, [state, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (current === lastSavedRef.current.c && future === lastSavedRef.current.f) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await upsert.mutateAsync({ pillar, current_state: current, future_state: future });
+        lastSavedRef.current = { c: current, f: future };
+      } catch (e: any) {
+        toast.error(e?.message || `Could not save ${pillar}`);
+      }
+    }, 900);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [current, future, hydrated, upsert, pillar]);
+
+  return (
+    <CinematicCard className="p-5 space-y-4">
+      <div className="space-y-1">
+        <h3 className="h-display text-lg text-foreground">{pillar}</h3>
+        <p className="text-[11px] text-muted-foreground leading-snug">{PILLAR_SUBTOPICS[pillar]}</p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <p className="eyebrow text-[10px] text-muted-foreground">Current State</p>
+          <Textarea
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            placeholder="Where this pillar is right now…"
+            className="min-h-[110px] resize-y bg-background/40 border-border/60 text-sm leading-relaxed"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <p className="eyebrow text-[10px] text-primary/80">Future State</p>
+          <Textarea
+            value={future}
+            onChange={(e) => setFuture(e.target.value)}
+            placeholder="What this pillar looks like at its best…"
+            className="min-h-[110px] resize-y bg-background/40 border-primary/30 text-sm leading-relaxed"
+          />
+        </div>
+      </div>
+    </CinematicCard>
+  );
+}
+
+function PillarStateSection() {
+  const { data: states = [], isLoading } = usePillarStates();
+  const byPillar = useMemo(() => {
+    const map: Partial<Record<Pillar, PillarState>> = {};
+    for (const s of states) map[s.pillar] = s;
+    return map;
+  }, [states]);
+
+  return (
+    <section className="space-y-4">
+      <div className="space-y-2">
+        <SectionEyebrow>YOUR PILLARS · CURRENT vs FUTURE</SectionEyebrow>
+        <h2 className="h-display text-2xl md:text-3xl text-foreground">
+          Where you are. Where you're going.
+        </h2>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          For each of the 7 Fs, capture an honest read of today and a vivid picture of the future
+          you're building toward. These anchor every Pulse, LCI, and coaching conversation.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <CinematicCard className="p-8 text-center text-sm text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+        </CinematicCard>
+      ) : (
+        <div className="space-y-4">
+          {PILLARS.map((p) => (
+            <PillarStateRow key={p} pillar={p} state={byPillar[p]} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ---------- Page ----------
 
 const GuidePage = () => {
@@ -318,6 +430,7 @@ const GuidePage = () => {
 
         <LifeVisionSection />
         <YearPrioritiesSection />
+        <PillarStateSection />
         <WhySection />
       </div>
     </div>

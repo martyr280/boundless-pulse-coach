@@ -4,6 +4,7 @@ import MountainMark from '@/components/visual/MountainMark';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentCycle } from '@/hooks/useCurrentCycle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,11 +17,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const tabs = [
+const buildTabs = (cycleActive: boolean) => [
   { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
   { to: '/checkin', icon: Target, label: 'Now' },
-  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
+  { to: '/weekly', icon: CalendarDays, label: cycleActive ? 'Daily' : 'Weekly' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
@@ -33,6 +34,8 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const { data: cycle } = useCurrentCycle();
+  const tabs = buildTabs(!!cycle?.cycle);
 
   if (!session || location.pathname === '/auth' || location.pathname === '/onboarding') return null;
 
