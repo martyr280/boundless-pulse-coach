@@ -176,10 +176,11 @@ const AuthPage = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/60 to-background" />
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <div className="flex items-center gap-3">
-            <MountainMark className="h-10 w-10" />
-            <span className="text-xl font-black uppercase tracking-[0.22em]">Boundless</span>
-          </div>
+          <img
+            src="/boundless-logo-light.png"
+            alt="Boundless Farm"
+            className="h-20 w-auto"
+          />
           <div className="space-y-6 max-w-md">
             <SectionEyebrow>It's time to pursue</SectionEyebrow>
             <h2 className="h-display text-4xl xl:text-5xl text-foreground">
@@ -202,9 +203,8 @@ const AuthPage = () => {
       {/* Right: form */}
       <div className="flex items-center justify-center px-4 py-10 lg:py-0">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 justify-center mb-8 lg:hidden">
-            <MountainMark className="h-9 w-9" />
-            <h1 className="text-xl font-black uppercase tracking-[0.22em]">Boundless</h1>
+          <div className="flex justify-center mb-8 lg:hidden">
+            <img src="/boundless-logo-light.png" alt="Boundless Farm" className="h-16 w-auto" />
           </div>
 
           <div className="mb-6">
