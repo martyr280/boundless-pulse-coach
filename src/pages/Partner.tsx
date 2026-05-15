@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import HeroFrame from '@/components/visual/HeroFrame';
-import heroMountains from '@/assets/hero-mountains.jpg';
+import heroForest from '@/assets/hero-forest.jpg';
 import { useAuth } from '@/contexts/AuthContext';
 import { PILLARS, type Pillar } from '@/lib/types';
 import {
@@ -416,7 +416,7 @@ const PartnerPage = () => {
         </button>
 
         <HeroFrame
-          image={heroMountains}
+          image={heroForest}
           height="sm"
           align="left"
           eyebrow={<SectionEyebrow>YOUR PARTNER</SectionEyebrow>}

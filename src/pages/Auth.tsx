@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 import MountainMark from '@/components/visual/MountainMark';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
 import PullQuote from '@/components/visual/PullQuote';
-import heroSummit from '@/assets/hero-summit.jpg';
+import heroFarm from '@/assets/hero-farm.jpg';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
@@ -169,7 +169,7 @@ const AuthPage = () => {
       {/* Left: cinematic panel */}
       <aside className="relative hidden lg:flex overflow-hidden">
         <img
-          src={heroSummit}
+          src={heroFarm}
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover"

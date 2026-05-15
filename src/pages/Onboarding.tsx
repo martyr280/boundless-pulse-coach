@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import HeroFrame from '@/components/visual/HeroFrame';
 import CinematicCard from '@/components/visual/CinematicCard';
 import SectionEyebrow from '@/components/visual/SectionEyebrow';
-import heroSummit from '@/assets/hero-summit.jpg';
+import heroFarm from '@/assets/hero-farm.jpg';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
@@ -173,7 +173,7 @@ const OnboardingPage = () => {
         <ProgressBar step={1} />
         <div className="w-full max-w-3xl">
           <HeroFrame
-            image={heroSummit}
+            image={heroFarm}
             height="lg"
             align="center"
             eyebrow={<SectionEyebrow>WELCOME TO BOUNDLESS</SectionEyebrow>}
