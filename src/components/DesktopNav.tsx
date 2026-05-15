@@ -27,15 +27,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+// Order follows the Boundless proposal cadence:
+// daily loop → weekly → monthly LCI → execution → coaching → partnership.
 const baseTabs = [
   { to: '/', icon: MountainMark, label: 'Pulse' },
-  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
-  { to: '/checkin', icon: Target, label: 'Your Now' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
-  { to: '/partner', icon: Users, label: 'Partner' },
+  { to: '/checkin', icon: Target, label: 'Your Now' },
+  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
+  { to: '/partner', icon: Users, label: 'Partner' },
 ];
 
 const DesktopNav = () => {
