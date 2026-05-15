@@ -7,6 +7,7 @@ import Coach from '@/pages/Coach';
 import Correlations from '@/pages/Correlations';
 import Nudges from '@/pages/Nudges';
 import CoachDashboard from '@/pages/CoachDashboard';
+import CoachManageCoachees from '@/pages/CoachManageCoachees';
 import LCI from '@/pages/LCI';
 import LCINew from '@/pages/LCINew';
 import LCIGuided from '@/pages/LCIGuided';
