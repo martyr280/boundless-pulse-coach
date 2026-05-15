@@ -129,43 +129,70 @@ function StepIndexRail() {
   const nav = useGuideNav();
   if (!nav) return null;
   return (
-    <div className="flex items-center gap-1 overflow-x-auto pb-2 -mx-1 px-1">
-      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => {
-        const isCurrent = nav.currentStep === n;
-        const isFilled = nav.filled[n];
-        return (
-          <button
-            key={n}
-            onClick={() => nav.goStep(n)}
-            title={STEP_TITLES[n]?.title}
-            className={[
-              'shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors',
-              isCurrent
-                ? 'bg-primary text-primary-foreground border-primary'
-                : isFilled
-                  ? 'border-primary/40 text-foreground bg-primary/10 hover:bg-primary/20'
-                  : 'border-border/60 text-muted-foreground hover:bg-muted/40',
-            ].join(' ')}
-          >
-            <span className={[
-              'h-4 w-4 inline-flex items-center justify-center rounded-full text-[9px]',
-              isCurrent ? 'bg-primary-foreground/20' : isFilled ? 'bg-primary/30' : 'bg-muted/60',
-            ].join(' ')}>
-              {isFilled && !isCurrent ? <Check className="h-2.5 w-2.5" /> : n}
-            </span>
-            <span className="hidden md:inline">{STEP_TITLES[n]?.title.replace(/^\(?Y\)?our\s*/i, '')}</span>
-          </button>
-        );
-      })}
-      <button
-        onClick={() => nav.goOverview()}
-        className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/40 ml-1"
-        title="Overview"
-      >
-        <LayoutGrid className="h-3 w-3" />
-        <span className="hidden md:inline">Overview</span>
-      </button>
-    </div>
+    <nav
+      aria-label="Workshop steps"
+      className="rounded-2xl border border-border/60 bg-card/40 backdrop-blur px-3 py-3"
+    >
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="eyebrow text-[10px] text-muted-foreground">Workshop steps</span>
+        <button
+          onClick={() => nav.goOverview()}
+          className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] font-bold text-muted-foreground hover:text-primary transition-colors"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" />
+          Overview
+        </button>
+      </div>
+      <div className="flex items-stretch gap-2 overflow-x-auto pb-1">
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((n) => {
+          const isCurrent = nav.currentStep === n;
+          const isFilled = nav.filled[n];
+          const title = STEP_TITLES[n]?.title.replace(/^\(?Y\)?our\s*/i, '') ?? `Step ${n}`;
+          return (
+            <button
+              key={n}
+              onClick={() => nav.goStep(n)}
+              title={STEP_TITLES[n]?.title}
+              aria-current={isCurrent ? 'step' : undefined}
+              className={[
+                'group shrink-0 flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-all',
+                isCurrent
+                  ? 'border-primary bg-primary/15 shadow-[0_0_0_1px_hsl(var(--primary)/0.4)]'
+                  : isFilled
+                    ? 'border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50'
+                    : 'border-border/60 bg-background/30 hover:bg-muted/40 hover:border-border',
+              ].join(' ')}
+            >
+              <span
+                className={[
+                  'h-7 w-7 inline-flex items-center justify-center rounded-full font-serif text-sm transition-colors',
+                  isCurrent
+                    ? 'bg-primary text-primary-foreground'
+                    : isFilled
+                      ? 'bg-primary/25 text-primary'
+                      : 'bg-muted/60 text-muted-foreground',
+                ].join(' ')}
+              >
+                {isFilled && !isCurrent ? <Check className="h-3.5 w-3.5" /> : n}
+              </span>
+              <span className="hidden md:flex flex-col leading-tight pr-1">
+                <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-muted-foreground">
+                  Step {n}
+                </span>
+                <span
+                  className={[
+                    'font-serif text-sm',
+                    isCurrent ? 'text-foreground' : isFilled ? 'text-foreground/90' : 'text-muted-foreground',
+                  ].join(' ')}
+                >
+                  {title}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 
