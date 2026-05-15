@@ -33,6 +33,7 @@ const AuthPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [pendingVerify, setPendingVerify] = useState(false);
   const [otp, setOtp] = useState('');
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const from = (location.state as any)?.from || '/';
 
