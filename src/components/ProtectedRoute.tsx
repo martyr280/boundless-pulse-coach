@@ -29,6 +29,30 @@ const ProtectedRoute = ({
   const loggedRef = useRef<string | null>(null);
   const { data: profile, isLoading: profileLoading } = useProfile();
 
+  // Compute role requirements up-front so all hooks are called unconditionally.
+  const required: AppRole[] = allowedRoles
+    ? [...allowedRoles]
+    : requireAdmin
+      ? ['admin']
+      : requireCoach
+        ? ['coach', 'admin']
+        : [];
+
+  const denied =
+    !!session && required.length > 0 && !rolesLoading && !hasRole(required) && !isAdmin;
+
+  useEffect(() => {
+    if (!denied) return;
+    const key = `${location.pathname}|${required.join(',')}`;
+    if (loggedRef.current === key) return;
+    loggedRef.current = key;
+    logAccessDenied({
+      route: location.pathname,
+      requiredRoles: required,
+      userRoles: roles,
+    });
+  }, [denied, location.pathname, required, roles]);
+
   // 1. Wait for initial auth check.
   if (loading) {
     return (
