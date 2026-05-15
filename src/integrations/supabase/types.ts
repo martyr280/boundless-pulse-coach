@@ -400,6 +400,42 @@ export type Database = {
         }
         Relationships: []
       }
+      lci_guided_runs: {
+        Row: {
+          created_at: string
+          id: string
+          materialized_session_id: string | null
+          messages: Json
+          payload: Json
+          status: string
+          step: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          materialized_session_id?: string | null
+          messages?: Json
+          payload?: Json
+          status?: string
+          step?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          materialized_session_id?: string | null
+          messages?: Json
+          payload?: Json
+          status?: string
+          step?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lci_highs_lows: {
         Row: {
           body: string
