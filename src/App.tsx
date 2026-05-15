@@ -37,6 +37,7 @@ const Shell = () => {
         >
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/access-denied" element={<AccessDenied />} />
             {protectedRoutes.map(({ path, component: Component, allowedRoles }) => (
               <Route
