@@ -208,7 +208,7 @@ export default function AdminUsers() {
                               }}
                             >
                               <SelectTrigger className="h-8 w-32">
-                                <SelectValue placeholder={<span className="flex items-center gap-1 text-xs"><Plus className="h-3 w-3" /> add role</span> as any} />
+                                <SelectValue placeholder="+ add role" />
                               </SelectTrigger>
                               <SelectContent>
                                 {missing.map((r) => (
