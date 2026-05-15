@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus, X, Loader2, ArrowLeft, ArrowRight, Sparkles, Printer, Download,
-  Check, BookOpen,
+  Check, BookOpen, Pencil, LayoutGrid,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
