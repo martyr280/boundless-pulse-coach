@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,61 +6,61 @@
 
 @layer base {
   :root {
-    /* Boundless.me: Cinematic charcoal + burnt orange */
-    --background: 220 14% 7%;
-    --foreground: 40 12% 96%;
+    /* Boundless Farm: warm pastoral dark + cream/tan accent */
+    --background: 30 14% 8%;
+    --foreground: 38 28% 94%;
 
-    --card: 220 12% 11%;
-    --card-foreground: 40 12% 96%;
+    --card: 30 12% 12%;
+    --card-foreground: 38 28% 94%;
 
-    --popover: 220 12% 11%;
-    --popover-foreground: 40 12% 96%;
+    --popover: 30 12% 12%;
+    --popover-foreground: 38 28% 94%;
 
-    --primary: 22 90% 52%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 28 95% 60%;
+    --primary: 35 45% 70%;
+    --primary-foreground: 30 25% 12%;
+    --primary-glow: 38 55% 78%;
 
-    --secondary: 220 10% 16%;
-    --secondary-foreground: 40 10% 92%;
+    --secondary: 30 10% 17%;
+    --secondary-foreground: 38 25% 92%;
 
-    --muted: 220 10% 15%;
-    --muted-foreground: 220 8% 60%;
+    --muted: 30 10% 16%;
+    --muted-foreground: 35 12% 62%;
 
-    --accent: 220 10% 16%;
-    --accent-foreground: 40 12% 96%;
-    --accent-warm: 35 85% 55%;
+    --accent: 30 10% 17%;
+    --accent-foreground: 38 28% 94%;
+    --accent-warm: 35 60% 65%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 27 88% 48%;
+    --warning: 32 78% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 10% 20%;
-    --input: 220 10% 20%;
-    --ring: 22 90% 52%;
+    --border: 30 10% 22%;
+    --input: 30 10% 22%;
+    --ring: 35 45% 70%;
 
     --radius: 1rem;
 
-    /* Cinematic gradients */
-    --gradient-hero: radial-gradient(ellipse at center, hsl(220 14% 10%) 0%, hsl(220 14% 6%) 60%, hsl(22 60% 14%) 100%);
-    --gradient-overlay: linear-gradient(180deg, hsl(220 14% 7% / 0.2) 0%, hsl(220 14% 7% / 0.85) 70%, hsl(220 14% 7%) 100%);
+    /* Pastoral golden-hour gradients */
+    --gradient-hero: radial-gradient(ellipse at center, hsl(30 14% 11%) 0%, hsl(30 14% 7%) 60%, hsl(35 35% 18%) 100%);
+    --gradient-overlay: linear-gradient(180deg, hsl(30 14% 8% / 0.2) 0%, hsl(30 14% 8% / 0.85) 70%, hsl(30 14% 8%) 100%);
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(22 90% 52%) 0%, hsl(35 85% 55%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(35 45% 70%) 0%, hsl(38 65% 78%) 100%);
 
     /* Shadows */
-    --shadow-cinematic: 0 30px 80px -20px hsl(22 90% 40% / 0.35), 0 10px 30px -15px hsl(220 14% 0% / 0.6);
-    --shadow-elevated: 0 20px 50px -20px hsl(220 14% 0% / 0.6);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+    --shadow-cinematic: 0 30px 80px -20px hsl(35 45% 40% / 0.3), 0 10px 30px -15px hsl(30 14% 0% / 0.6);
+    --shadow-elevated: 0 20px 50px -20px hsl(30 14% 0% / 0.6);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
 
-    --sidebar-background: 220 14% 6%;
-    --sidebar-foreground: 40 10% 90%;
-    --sidebar-primary: 22 90% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 14%;
-    --sidebar-accent-foreground: 40 10% 90%;
-    --sidebar-border: 220 10% 18%;
-    --sidebar-ring: 22 90% 52%;
+    --sidebar-background: 30 14% 7%;
+    --sidebar-foreground: 38 25% 90%;
+    --sidebar-primary: 35 45% 70%;
+    --sidebar-primary-foreground: 30 25% 12%;
+    --sidebar-accent: 30 10% 15%;
+    --sidebar-accent-foreground: 38 25% 90%;
+    --sidebar-border: 30 10% 20%;
+    --sidebar-ring: 35 45% 70%;
   }
 }
 
@@ -77,16 +77,17 @@
 
 @layer components {
   .h-display {
-    @apply font-black uppercase leading-[0.95];
-    letter-spacing: 0.04em;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    @apply font-semibold leading-[1.02];
+    letter-spacing: -0.005em;
     text-wrap: balance;
   }
 
   .h-quote {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Cormorant Garamond', Georgia, serif;
     font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    letter-spacing: -0.005em;
   }
 
   .eyebrow {
