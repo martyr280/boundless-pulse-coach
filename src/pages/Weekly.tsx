@@ -38,6 +38,9 @@ const WeeklyPage = () => {
   const navigate = useNavigate();
   const { data: history = [], isLoading } = useWeeklyResets();
   const { data: currentWeek } = useCurrentWeekReset();
+  const { data: cycle } = useCurrentCycle();
+  const cycleActive = !!cycle?.cycle;
+  const cadenceLabel = cycleActive ? 'Daily' : 'Weekly';
   const upsert = useCreateOrUpdateWeeklyReset();
   const weekStart = getWeekStart();
 
