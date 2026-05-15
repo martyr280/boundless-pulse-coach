@@ -1,14 +1,20 @@
-## Plan: Grant admin role to marty.reed01@gmail.com
+## Plan: Switch logo & favicon to Boundless Farm branding
 
-User found in `profiles`: id `570d9e29-7a53-4a19-877d-1cf98b3ee7eb`.
+The real Boundless Farm logo is a hand-drawn highland cow with "EST. 2024 · BOUNDLESS · FARM" wordmark (black on transparent). They also publish a white version for dark backgrounds. Current app uses a custom mountain SVG (`MountainMark`) with a "Boundless" text label.
 
-### Action
-Run a single insert against `public.user_roles`:
+### Assets to add (downloaded from boundlessfarm.com)
+- `public/boundless-logo.png` — full wordmark, black on transparent (light surfaces)
+- `public/boundless-logo-light.png` — full wordmark, white on transparent (dark surfaces / nav)
+- `public/favicon.png` — square crop of just the cow head (generated)
+- Delete `public/favicon.svg` (existing mountain mark)
 
-```sql
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('570d9e29-7a53-4a19-877d-1cf98b3ee7eb', 'admin')
-ON CONFLICT (user_id, role) DO NOTHING;
-```
+### Code changes
+1. **`index.html`** — swap `<link rel="icon">` to `/favicon.png`.
+2. **`src/components/visual/MountainMark.tsx`** — keep the component name/API (still used as the brand mark across nav, auth, etc.) but render the cow-head crop `<img src="/favicon.png">` instead of the mountain SVG. `className` continues to control size.
+3. **`src/components/DesktopNav.tsx`** — keep `<MountainMark>` next to the "Boundless" wordmark in the sidebar header (now shows cow + word).
+4. **`src/components/BottomNav.tsx`** — Pulse tab icon stays as `MountainMark` (now cow head).
+5. **`src/pages/Auth.tsx`** — replace the small MountainMark + "Boundless" text combo at the top of the auth card with a single full wordmark `<img src="/boundless-logo-light.png">` for a stronger first impression. Hero side keeps `MountainMark` as the small accent.
 
-This grants the `admin` app_role, unlocking admin-only routes/policies (framework content, audit log, user_roles management, etc.). No code changes needed.
+### Out of scope
+- No nav copy changes; just iconography.
+- No color/theme changes — palette already matches the farm site.
