@@ -69,6 +69,13 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Identify weakest pillars and pull grounding context for them
+    const sorted = [...scores].sort((a: any, b: any) => (a.score ?? 10) - (b.score ?? 10));
+    const focusQuery = sorted.slice(0, 3).map((s: any) => s.pillar).join(", ") +
+      " — Boundless guidance for low-scoring life pillars";
+    const chunks = await retrieve(focusQuery, { k: 5 });
+    const groundedSystem = SYSTEM_PROMPT + formatContext(chunks);
+
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -80,7 +87,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: groundedSystem },
             { role: "user", content: `Here are my pillar scores: ${JSON.stringify(scores)}` },
           ],
         }),
