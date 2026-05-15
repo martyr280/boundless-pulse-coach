@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useProfile';
+import { useCurrentCycle } from '@/hooks/useCurrentCycle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,11 +30,11 @@ import {
 
 // Order follows the Boundless proposal cadence:
 // daily loop → weekly → monthly LCI → execution → coaching → partnership.
-const baseTabs = [
+const buildBaseTabs = (cycleActive: boolean) => [
   { to: '/', icon: MountainMark, label: 'Pulse' },
   { to: '/guide', icon: BookOpen, label: 'Guide' },
   { to: '/checkin', icon: Target, label: 'Your Now' },
-  { to: '/weekly', icon: CalendarDays, label: 'Weekly' },
+  { to: '/weekly', icon: CalendarDays, label: cycleActive ? 'Daily' : 'Weekly' },
   { to: '/lci', icon: ClipboardList, label: 'LCI' },
   { to: '/actions', icon: ListChecks, label: 'Actions' },
   { to: '/coach', icon: Brain, label: 'Coach' },
@@ -47,7 +48,10 @@ const DesktopNav = () => {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const { data: role } = useUserRole();
+  const { data: cycle } = useCurrentCycle();
+  const cycleActive = !!cycle?.cycle;
 
+  const baseTabs = buildBaseTabs(cycleActive);
   const tabs = role === 'admin'
     ? [...baseTabs, { to: '/admin', icon: Shield, label: 'Admin' }]
     : baseTabs;
