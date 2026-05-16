@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,12 +13,18 @@ import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 import { protectedRoutes } from "./routes/config";
+import { logPageView } from "@/lib/activity";
 
 const queryClient = new QueryClient();
 
 const Shell = () => {
   const { pathname } = useLocation();
   const noChrome = pathname === "/auth" || pathname === "/onboarding" || pathname === "/reset-password";
+
+  useEffect(() => {
+    logPageView(pathname);
+  }, [pathname]);
+
   return (
     <>
       <DesktopNav />
