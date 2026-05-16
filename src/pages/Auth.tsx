@@ -60,8 +60,12 @@ const AuthPage = () => {
         setPendingVerify(true);
         toast.success('Check your email for a 6-digit verification code.');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          await logLoginAttempt({ email, success: false, reason: error.message, method: 'password' });
+          throw error;
+        }
+        await logLoginAttempt({ email, success: true, method: 'password', userId: data.user?.id });
       }
     } catch (err: any) {
       toast.error(err.message || 'Authentication failed');
