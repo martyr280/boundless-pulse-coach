@@ -148,6 +148,7 @@ const AuthPage = () => {
         },
       });
       if (error) {
+        await logLoginAttempt({ email: emailParse.data, success: false, reason: error.message, method: 'magic_link' });
         const msg = (error.message || '').toLowerCase();
         // User typed an email we don't have on file in sign-in mode.
         if (
