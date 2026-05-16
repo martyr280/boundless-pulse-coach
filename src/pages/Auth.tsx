@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { useAuth } from '@/contexts/AuthContext';
+import { logLoginAttempt } from '@/lib/activity';
 
 const schema = z.object({
   email: z.string().trim().email('Invalid email').max(255),
@@ -59,8 +60,12 @@ const AuthPage = () => {
         setPendingVerify(true);
         toast.success('Check your email for a 6-digit verification code.');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          await logLoginAttempt({ email, success: false, reason: error.message, method: 'password' });
+          throw error;
+        }
+        await logLoginAttempt({ email, success: true, method: 'password', userId: data.user?.id });
       }
     } catch (err: any) {
       toast.error(err.message || 'Authentication failed');
@@ -143,6 +148,7 @@ const AuthPage = () => {
         },
       });
       if (error) {
+        await logLoginAttempt({ email: emailParse.data, success: false, reason: error.message, method: 'magic_link' });
         const msg = (error.message || '').toLowerCase();
         // User typed an email we don't have on file in sign-in mode.
         if (
@@ -219,11 +225,13 @@ const AuthPage = () => {
       });
       if (result?.redirected) return; // browser is navigating to Google
       if (result?.error) {
+        await logLoginAttempt({ email: email || 'unknown', success: false, reason: String(result.error), method: 'google' });
         toast.error(friendlyOAuthError(result.error));
         return;
       }
       // Tokens received — AuthContext listener will navigate.
     } catch (err) {
+      await logLoginAttempt({ email: email || 'unknown', success: false, reason: (err as any)?.message ?? String(err), method: 'google' });
       console.error('[Auth] Google sign-in error:', err);
       toast.error(friendlyOAuthError(err));
     } finally {
