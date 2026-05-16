@@ -64,18 +64,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(s);
       // Defer the role fetch so we don't deadlock the auth callback.
       setTimeout(() => loadRoles(s?.user?.id), 0);
-      // Log successful sign-ins from OAuth / magic link redirects.
+      // Log successful sign-ins from OAuth / magic link redirects (dedupe per session).
       if (event === 'SIGNED_IN' && s?.user) {
-        setTimeout(() => {
-          import('@/lib/activity').then(({ logLoginAttempt }) =>
-            logLoginAttempt({
-              email: s.user.email ?? 'unknown',
-              success: true,
-              method: (s.user.app_metadata?.provider as any) ?? 'session',
-              userId: s.user.id,
-            }),
-          );
-        }, 0);
+        const key = `activity:logged:${s.access_token?.slice(-16) ?? s.user.id}`;
+        if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, '1');
+          setTimeout(() => {
+            import('@/lib/activity').then(({ logLoginAttempt }) =>
+              logLoginAttempt({
+                email: s.user.email ?? 'unknown',
+                success: true,
+                method: (s.user.app_metadata?.provider as any) ?? 'session',
+                userId: s.user.id,
+              }),
+            );
+          }, 0);
+        }
       }
     });
 
