@@ -361,6 +361,33 @@ const AuthPage = () => {
                     <TabsContent value="signup" />
                   </Tabs>
 
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className={
+                      mode === 'signup'
+                        ? 'mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-foreground/85'
+                        : 'mb-4 rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-xs text-muted-foreground'
+                    }
+                  >
+                    {mode === 'signup' ? (
+                      <>
+                        <span className="font-bold uppercase tracking-[0.18em] text-[10px] text-primary block mb-1">
+                          Email verification required
+                        </span>
+                        After you create your account, we'll send a 6-digit code to your inbox.
+                        Enter it here to verify your email — you'll be signed in automatically once it's confirmed.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-bold uppercase tracking-[0.18em] text-[10px] text-foreground block mb-1">
+                          Already verified?
+                        </span>
+                        Sign in below with the email and password you used to create your account.
+                      </>
+                    )}
+                  </div>
+
                   <form onSubmit={handleSubmit} className="space-y-3">
                     {mode === 'signup' && (
                       <div>
