@@ -293,11 +293,24 @@ const AuthPage = () => {
             <CardContent className="pt-6">
               {pendingVerify ? (
                 <div className="space-y-5">
-                  <div className="text-center space-y-2">
-                    <h3 className="h-display text-xl">Check your email</h3>
-                    <p className="text-sm text-muted-foreground">
-                      We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground/90"
+                  >
+                    <p className="font-bold uppercase tracking-[0.18em] text-[11px] text-primary mb-1">
+                      Verify your email
                     </p>
+                    <p>
+                      Check <span className="font-medium text-foreground">{email}</span> for a 6-digit code.
+                      Enter it below to confirm your address — once verified, you'll be signed in automatically and can start using Boundless right away.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      Don't see it? Check spam, or tap <span className="text-primary">Resend code</span>. Codes expire after 10 minutes.
+                    </p>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <h3 className="h-display text-xl">Enter your code</h3>
                   </div>
                   <div className="flex justify-center">
                     <InputOTP
@@ -347,6 +360,33 @@ const AuthPage = () => {
                     <TabsContent value="signin" />
                     <TabsContent value="signup" />
                   </Tabs>
+
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className={
+                      mode === 'signup'
+                        ? 'mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs text-foreground/85'
+                        : 'mb-4 rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-xs text-muted-foreground'
+                    }
+                  >
+                    {mode === 'signup' ? (
+                      <>
+                        <span className="font-bold uppercase tracking-[0.18em] text-[10px] text-primary block mb-1">
+                          Email verification required
+                        </span>
+                        After you create your account, we'll send a 6-digit code to your inbox.
+                        Enter it here to verify your email — you'll be signed in automatically once it's confirmed.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-bold uppercase tracking-[0.18em] text-[10px] text-foreground block mb-1">
+                          Already verified?
+                        </span>
+                        Sign in below with the email and password you used to create your account.
+                      </>
+                    )}
+                  </div>
 
                   <form onSubmit={handleSubmit} className="space-y-3">
                     {mode === 'signup' && (
