@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { useAuth } from '@/contexts/AuthContext';
+import { logLoginAttempt } from '@/lib/activity';
 
 const schema = z.object({
   email: z.string().trim().email('Invalid email').max(255),
