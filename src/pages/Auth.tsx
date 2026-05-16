@@ -225,11 +225,13 @@ const AuthPage = () => {
       });
       if (result?.redirected) return; // browser is navigating to Google
       if (result?.error) {
+        await logLoginAttempt({ email: email || 'unknown', success: false, reason: String(result.error), method: 'google' });
         toast.error(friendlyOAuthError(result.error));
         return;
       }
       // Tokens received — AuthContext listener will navigate.
     } catch (err) {
+      await logLoginAttempt({ email: email || 'unknown', success: false, reason: (err as any)?.message ?? String(err), method: 'google' });
       console.error('[Auth] Google sign-in error:', err);
       toast.error(friendlyOAuthError(err));
     } finally {
